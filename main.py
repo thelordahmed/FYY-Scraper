@@ -37,6 +37,7 @@ class Main:
         # self.session.commit()
         threading.Thread(target=self.ui_default_status).start()
 
+
     @staticmethod
     def parse_address(address: str) -> dict:
         """
@@ -86,6 +87,7 @@ class Main:
             self.sig.add_to_tabelWidget.emit(record, self.view.tableWidget)
 
     def export(self, filter_keyword, sort_keyword):
+        session = Session()
         # PREPARING SORT KEYWORD TO BE PASSED TO THE DATABASE QUERY
         if sort_keyword == "name":
             sort_poperty = Report.name
@@ -105,7 +107,7 @@ class Main:
         # CHECKING IF FILTER BY SOURCE WAS CHOOSED
         try:
             if filter_keyword == "All":
-                reports = self.session.query(
+                reports = session.query(
                     Report.name,
                     Report.email,
                     Report.phone,
@@ -119,7 +121,7 @@ class Main:
                     Report.source,
                 ).order_by(sort_poperty).all()
             else:
-                reports = self.session.query(
+                reports = session.query(
                     Report.name,
                     Report.email,
                     Report.phone,
@@ -133,6 +135,10 @@ class Main:
                     Report.source,
                 ).filter_by(source=filter_keyword).order_by(sort_poperty).all()
             print(reports)
+            if len(reports) == 0:
+                self.sig.error_message.emit("Error", "No Data to export!")
+                return False
+            # ALLOW USER TO CHOOSE THE CSV FILE LOCATION
             path = self.view.saveDialog()
             with open(path, "w", encoding = "utf-8", newline = "") as f:
                 for row in reports:
