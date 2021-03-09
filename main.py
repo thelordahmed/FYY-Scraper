@@ -1,0 +1,303 @@
+import csv
+import random
+from time import sleep
+from webbrowser import Chrome
+import usaddress
+from PySide2 import QtCore
+from PySide2.QtWidgets import QApplication, QTableWidget
+import threading
+from selenium.common.exceptions import NoSuchWindowException, WebDriverException
+from sqlalchemy import func
+from view import View
+from models import Report, YelpResults, FacebookPages, YellowPagesResults, Session
+from yelp import Yelp
+from facebook import Facebook
+from connections import Connections
+from states import States
+
+
+class Signals(QtCore.QObject):
+    ok_message = QtCore.Signal(str, str)
+    error_message = QtCore.Signal(str, str)
+    add_to_tabelWidget = QtCore.Signal(tuple, QTableWidget)
+    statusBar_msg = QtCore.Signal(str)
+
+
+class Main:
+    def __init__(self):
+        self.view = View("API URL")
+        self.sig = Signals()
+        self.states = States(self.view, self)
+        self.session = Session()
+        # UI WIDGETS CALLBACKS
+        Connections(self.view, self)
+        # LOADING INTERFACE VALUES - OPENED IN ANOTHER THREAD TO ENHANCE OPENING SPEED
+        # self.session.query(Report).delete()
+        # self.session.query(YelpResults).delete()
+        # self.session.commit()
+        threading.Thread(target=self.ui_default_status).start()
+
+    @staticmethod
+    def parse_address(address: str) -> dict:
+        """
+        this method will parse full usa address to city, state and street address
+        """
+        adr = usaddress.tag(address)
+        city = adr[0]["PlaceName"]
+        state = adr[0]["StateName"]
+        if adr[1] != "Ambiguous":
+            street_address = address.replace(city, "").replace(state, "")
+        else:
+            street_address = "--"
+        return {
+            "city": city,
+            "state": state,
+            "street": street_address
+        }
+
+    @staticmethod
+    def clean_phone_number(phone: str):
+        symbols = ["(", ")", " ", "-", "\\", "/", "+"]
+        for sym in symbols:
+            phone = phone.replace(sym, "")
+        return phone
+
+    def ui_default_status(self):
+        self.view.listWidget.setCurrentRow(0)
+        self.view.container_tabwid.setCurrentIndex(0)
+        self.view.yelp_stop.setDisabled(True)
+        self.view.yp_stop.setDisabled(True)
+        self.view.fb_stop.setDisabled(True)
+        # LOADING REPORTS
+        reports = self.session.query(
+            Report.name,
+            Report.email,
+            Report.phone,
+            Report.website,
+            Report.fb_page,
+            Report.address,
+            Report.state,
+            Report.city,
+            Report.open_hours,
+            Report.search_keyword,
+            Report.source,
+        ).all()
+        for record in reports:
+            self.sig.add_to_tabelWidget.emit(record, self.view.tableWidget)
+
+    def export(self, filter_keyword, sort_keyword):
+        # PREPARING SORT KEYWORD TO BE PASSED TO THE DATABASE QUERY
+        if sort_keyword == "name":
+            sort_poperty = Report.name
+        elif sort_keyword == "address":
+            sort_poperty = Report.address
+        elif sort_keyword == "state":
+            sort_poperty = Report.state
+        elif sort_keyword == "city":
+            sort_poperty = Report.city
+        elif sort_keyword == "open hours":
+            sort_poperty = Report.open_hours
+        elif sort_keyword == "search keyword":
+            sort_poperty = Report.search_keyword
+        else:
+            print("sort keyword not SPECIFIED!!! defaulted to sort by name")
+            sort_poperty = Report.name
+        # CHECKING IF FILTER BY SOURCE WAS CHOOSED
+        try:
+            if filter_keyword == "All":
+                reports = self.session.query(
+                    Report.name,
+                    Report.email,
+                    Report.phone,
+                    Report.website,
+                    Report.fb_page,
+                    Report.address,
+                    Report.state,
+                    Report.city,
+                    Report.open_hours,
+                    Report.search_keyword,
+                    Report.source,
+                ).order_by(sort_poperty).all()
+            else:
+                reports = self.session.query(
+                    Report.name,
+                    Report.email,
+                    Report.phone,
+                    Report.website,
+                    Report.fb_page,
+                    Report.address,
+                    Report.state,
+                    Report.city,
+                    Report.open_hours,
+                    Report.search_keyword,
+                    Report.source,
+                ).filter_by(source=filter_keyword).order_by(sort_poperty).all()
+            print(reports)
+            path = self.view.saveDialog()
+            with open(path, "w", encoding = "utf-8", newline = "") as f:
+                for row in reports:
+                    writer = csv.writer(f)
+                    writer.writerow(row)
+        except Exception as e:
+            print(e)
+            pass
+
+    @staticmethod
+    def is_browser_opened(window_check_var):
+        if window_check_var is not None:
+            try:
+                print(window_check_var.current_window_handle)
+                return True
+            except NoSuchWindowException and WebDriverException:
+                return False
+        else:
+            return False
+
+    @staticmethod
+    def yelp_openBrowser():
+        if Yelp.window is not None:
+            try:
+                Yelp.window.switch_to.window(Yelp.window.current_window_handle)
+                return False
+            except NoSuchWindowException and WebDriverException:
+                pass
+        threading.Thread(target=Yelp.open).start()
+
+    @staticmethod
+    def process_start(process_func, start_btn, stop_btn):
+        threading.Thread(target=process_func).start()
+        start_btn.setDisabled(True)
+        stop_btn.setEnabled(True)
+
+    def yelp_process(self):
+        # CHECK IF BROWSER OPENED
+        if Yelp.window is not None:
+            try:
+                print(Yelp.window.current_window_handle)
+            except NoSuchWindowException and WebDriverException:
+                self.sig.error_message.emit("Error", "Yelp Browser Window is Not Opened!")
+                self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop)
+                return False
+        else:
+            self.sig.error_message.emit("Error", "Yelp Browser Window is Not Opened!")
+            self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop)
+            return False
+        # DATABASE SESSION VAR
+        session = Session()
+        # CONTINUING FOR LAST CHECKPOINT
+        searching_keyword = Yelp.get_search_keyword()
+        if not searching_keyword:
+            self.sig.error_message.emit("Error", "Search Results Not Found!")
+            self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop)
+            return False
+        record = session.query(func.max(YelpResults.page)).filter_by(
+            search_keyword=searching_keyword).first()  # RETURNS TUPLE
+        if record[0] is not None:
+            target_page = record[0]
+            # MAKE SURE THAT WE ARE NOT ON THE FIRST PAGE TO AVOID INFINITE LOOP
+            if target_page > 1:
+                Yelp.move_to_page(target_page)
+        # SHOWING REPORT PANEL
+        self.view.listWidget.setCurrentRow(1)
+        # SCRAPING RESULTS (WITHOUT DETAILS)
+        results = Yelp.scrape_results()
+        if results is False:
+            self.sig.error_message.emit("Error", "Search Results Not Found!")
+            self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop)
+            return False
+        ### PROCESS LOOP ###
+        while True:
+            results = Yelp.scrape_results()
+            for name, reviews, verfied, search_keyword, page, url in results:
+                # CHECK IF RESULT WAS SCRAPED BEFORE
+                db_record = session.query(YelpResults).filter_by(name=name, reviews=reviews,
+                                                                 verfied_license=verfied).first()
+                if db_record is not None:
+                    continue
+                # SCRAPING RESULT DETAILS
+                result_details = Yelp.scrape_result_details2(url)
+                email, phone, website, address, open_hours = result_details[0], result_details[1], result_details[2], \
+                                                             result_details[3], result_details[4]
+                # PARSING THE ADDRESS TO STATE, CITY, STREET
+                if address != "---":
+                    parsed_address = self.parse_address(address)
+                else:
+                    parsed_address = {"street": "---", "state": "---", "city": "---"}
+                # CLEANING NUMBER FORMAT
+                phone = self.clean_phone_number(phone)
+                # ADDING TO THE DATABASE
+                yelp_obj = YelpResults(
+                    name=name,
+                    reviews=reviews,
+                    verfied_license=verfied,
+                    search_keyword=search_keyword,
+                    page=page
+                )
+                session.add(yelp_obj)
+                session.commit()
+                # AVOIDING DUBLICATES DATA
+                if email == "---":
+                    report_record = session.query(Report).filter_by(phone=phone).first() if phone != "---" else None
+                elif phone == "---":
+                    report_record = session.query(Report).filter_by(email=email).first()
+                else:
+                    report_record = session.query(Report).filter(
+                        (Report.phone == phone) | (Report.email == email)).first()
+                if report_record is not None:
+                    continue
+                report_obj = Report(
+                    name=name,
+                    email=email,
+                    phone=phone,
+                    website=website,
+                    fb_page="---",
+                    address=parsed_address["street"],
+                    state=parsed_address["state"],
+                    city=parsed_address["city"],
+                    open_hours=open_hours,
+                    search_keyword=search_keyword,
+                    source="Yelp"
+                )
+                session.add(report_obj)
+                session.commit()
+                # ADDING TO UI
+                data = (name, email, phone, website, "---", parsed_address["street"],
+                        parsed_address["state"], parsed_address["city"], open_hours, search_keyword, "Yelp")
+                self.sig.add_to_tabelWidget.emit(data, self.view.tableWidget)
+            # GOIING TO NEXT PAGE
+            self.sig.statusBar_msg.emit(">>> (Yelp) - Delaying 15 to 25 seconds to avoid block")
+            sleep(random.randint(15, 25))
+            self.sig.statusBar_msg.emit("")
+            if Yelp.click_next_page() is False:
+                self.sig.ok_message.emit("Yelp Note", "Yelp Completed Successfully ^_^")
+                break
+
+    def fb_open_browser(self):
+        if self.is_browser_opened(Facebook.window) is False:
+            threading.Thread(target=Facebook.open).start()
+
+    def fb_process(self):
+        session = Session()
+        # CHECK IF LOGGED IN
+        if Facebook.login_check() is False:
+            self.sig.error_message.emit("Error", "Facebook Browser Window is Not Opened!")
+            self.states.reset_start_button(self.view.fb_start, self.view.fb_stop)
+            return False
+        # GET SEARCH RESULTS
+        pages = Facebook.get_pages_urls()
+        if pages is False:
+            self.sig.error_message.emit("Error", "search reults not found, please make your search first!")
+            self.states.reset_start_button(self.view.fb_start, self.view.fb_stop)
+            return False
+        for page in pages:
+            url, name = page[0], page[1]
+            record = session.query(FacebookPages).filter_by(url=url, name=name).first()
+            # CHECK IF PAGE WAS SCRAPED BEFORE
+            if record is not None:
+                continue
+
+
+if __name__ == '__main__':
+    app = QApplication()
+    main = Main()
+    app.exec_()
