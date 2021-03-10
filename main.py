@@ -1,7 +1,6 @@
 import csv
 import random
 from time import sleep
-from webbrowser import Chrome
 import usaddress
 from PySide2 import QtCore
 from PySide2.QtWidgets import QApplication, QTableWidget
@@ -15,6 +14,8 @@ from facebook import Facebook
 from connections import Connections
 from states import States
 from yellowpages import YellowPages
+# cx-freeeze imports
+import fractions
 
 
 class Signals(QtCore.QObject):
