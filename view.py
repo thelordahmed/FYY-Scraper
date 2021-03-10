@@ -17,7 +17,6 @@ class View(QMainWindow, design):
         self.setupUi(self)
         self.show()
         self.session = Session()
-        self.state = "idle"
         # todo - activate the license key
         # self.api_url = api_url
         self.setWindowTitle(f"FYY Scraper {controller.version}")
@@ -89,11 +88,6 @@ class View(QMainWindow, design):
 
     def error_message(self, title, text):
         QMessageBox.critical(self, title, text, QMessageBox.Ok)
-
-    def saveDialog(self):
-        """:return saving path"""
-        path = QFileDialog.getSaveFileName(self, "save data", "data", "*.csv")
-        return path[0]
 
     def browse_singleFile_btn(self, lineedit_object: QLineEdit, title: str, extensions_range: str = ""):
         """

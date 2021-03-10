@@ -9,11 +9,12 @@ import threading
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from sqlalchemy import func
 from view import View
-from models import Report, YelpResults, FacebookPages, YellowPagesResults, Session
+from models import Report, YelpResults, YellowPagesModel, FacebookPages, Session
 from yelp import Yelp
 from facebook import Facebook
 from connections import Connections
 from states import States
+from yellowpages import YellowPages
 
 
 class Signals(QtCore.QObject):
@@ -36,7 +37,6 @@ class Main:
         # self.session.query(YelpResults).delete()
         # self.session.commit()
         threading.Thread(target=self.ui_default_status).start()
-
 
     @staticmethod
     def parse_address(address: str) -> dict:
@@ -140,7 +140,7 @@ class Main:
                 return False
             # ALLOW USER TO CHOOSE THE CSV FILE LOCATION
             path = self.view.saveDialog()
-            with open(path, "w", encoding = "utf-8", newline = "") as f:
+            with open(path, "w", encoding="utf-8", newline="") as f:
                 for row in reports:
                     writer = csv.writer(f)
                     writer.writerow(row)
@@ -160,20 +160,30 @@ class Main:
             return False
 
     @staticmethod
-    def yelp_openBrowser():
+    def process_start(process_func, start_btn, stop_btn):
+        threading.Thread(target=process_func).start()
+        start_btn.setDisabled(True)
+        stop_btn.setEnabled(True)
+
+    @staticmethod
+    def stop_button_func(target_class, stop_btn):
+        target_class.state = "stopped"
+        stop_btn.setDisabled(True)
+        stop_btn.setText("Stopping...")
+        # self.view.statusbar.showMessage(f"    ({target_class.__name__}) - Stopping in Progress...", 2000)
+
+    def yelp_openBrowser(self):
         if Yelp.window is not None:
             try:
                 Yelp.window.switch_to.window(Yelp.window.current_window_handle)
                 return False
             except NoSuchWindowException and WebDriverException:
                 pass
+        self.view.yelp_openBrowser.setDisabled(True)
         threading.Thread(target=Yelp.open).start()
+        sleep(3)
+        self.view.yelp_openBrowser.setEnabled(True)
 
-    @staticmethod
-    def process_start(process_func, start_btn, stop_btn):
-        threading.Thread(target=process_func).start()
-        start_btn.setDisabled(True)
-        stop_btn.setEnabled(True)
 
     def yelp_process(self):
         # CHECK IF BROWSER OPENED
@@ -182,11 +192,11 @@ class Main:
                 print(Yelp.window.current_window_handle)
             except NoSuchWindowException and WebDriverException:
                 self.sig.error_message.emit("Error", "Yelp Browser Window is Not Opened!")
-                self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop)
+                self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop, self.view.yelp_openBrowser)
                 return False
         else:
             self.sig.error_message.emit("Error", "Yelp Browser Window is Not Opened!")
-            self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop)
+            self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop, self.view.yelp_openBrowser)
             return False
         # DATABASE SESSION VAR
         session = Session()
@@ -194,7 +204,7 @@ class Main:
         searching_keyword = Yelp.get_search_keyword()
         if not searching_keyword:
             self.sig.error_message.emit("Error", "Search Results Not Found!")
-            self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop)
+            self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop, self.view.yelp_openBrowser)
             return False
         record = session.query(func.max(YelpResults.page)).filter_by(
             search_keyword=searching_keyword).first()  # RETURNS TUPLE
@@ -209,19 +219,25 @@ class Main:
         results = Yelp.scrape_results()
         if results is False:
             self.sig.error_message.emit("Error", "Search Results Not Found!")
-            self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop)
+            self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop, self.view.yelp_openBrowser)
             return False
         ### PROCESS LOOP ###
         while True:
+            # STOP EVENT CHECK
+            if Yelp.state == "stopped":
+                break
             results = Yelp.scrape_results()
             for name, reviews, verfied, search_keyword, page, url in results:
+                # STOP EVENT CHECK
+                if Yelp.state == "stopped":
+                    break
                 # CHECK IF RESULT WAS SCRAPED BEFORE
                 db_record = session.query(YelpResults).filter_by(name=name, reviews=reviews,
                                                                  verfied_license=verfied).first()
                 if db_record is not None:
                     continue
                 # SCRAPING RESULT DETAILS
-                result_details = Yelp.scrape_result_details2(url)
+                result_details = Yelp.scrape_result_details(url)
                 email, phone, website, address, open_hours = result_details[0], result_details[1], result_details[2], \
                                                              result_details[3], result_details[4]
                 # PARSING THE ADDRESS TO STATE, CITY, STREET
@@ -270,6 +286,8 @@ class Main:
                 data = (name, email, phone, website, "---", parsed_address["street"],
                         parsed_address["state"], parsed_address["city"], open_hours, search_keyword, "Yelp")
                 self.sig.add_to_tabelWidget.emit(data, self.view.tableWidget)
+            if Yelp.state == "stopped":
+                break
             # GOIING TO NEXT PAGE
             self.sig.statusBar_msg.emit(">>> (Yelp) - Delaying 15 to 25 seconds to avoid block")
             sleep(random.randint(15, 25))
@@ -277,23 +295,38 @@ class Main:
             if Yelp.click_next_page() is False:
                 self.sig.ok_message.emit("Yelp Note", "Yelp Completed Successfully ^_^")
                 break
+        # COMPLETED ACTION
+        if Yelp.state != "stopped":
+            self.sig.ok_message.emit("Yelp Completed",
+                                     "Yelp Completed Scraping Process Successfully ^_^")
+        else:
+            # RESETING STOP BUTTON
+            self.view.yelp_stop.setText("")
+            self.view.yelp_stop.setEnabled(True)
+        self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop, self.view.yelp_openBrowser)
+        Yelp.state = "idle"
+
 
     def fb_open_browser(self):
         if self.is_browser_opened(Facebook.window) is False:
+            self.view.fb_openBrowser.setDisabled(True)
             threading.Thread(target=Facebook.open).start()
+            sleep(3)
+            self.view.fb_openBrowser.setEnabled(True)
+
 
     def fb_process(self):
         session = Session()
         # CHECK IF LOGGED IN
         if Facebook.login_check() is False:
             self.sig.error_message.emit("Error", "Facebook Browser Window is Not Opened!")
-            self.states.reset_start_button(self.view.fb_start, self.view.fb_stop)
+            self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
             return False
         # GET SEARCH RESULTS
         pages = Facebook.get_pages_urls()
         if pages is False:
             self.sig.error_message.emit("Error", "search reults not found, please make your search first!")
-            self.states.reset_start_button(self.view.fb_start, self.view.fb_stop)
+            self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
             return False
         for page in pages:
             url, name = page[0], page[1]
@@ -301,6 +334,121 @@ class Main:
             # CHECK IF PAGE WAS SCRAPED BEFORE
             if record is not None:
                 continue
+
+    def yp_open_browser(self):
+        if self.is_browser_opened(YellowPages.window) is False:
+            self.view.yp_openBrowser.setDisabled(True)
+            threading.Thread(target=YellowPages.open).start()
+            sleep(3)
+            self.view.yp_openBrowser.setEnabled(True)
+
+    def yp_process(self):
+        # CHECK IF BROWSER OPENED
+        if YellowPages.window is not None:
+            try:
+                print(YellowPages.window.current_window_handle)
+            except NoSuchWindowException and WebDriverException:
+                self.sig.error_message.emit("Error", "YellowPages Browser Window is Not Opened!")
+                self.states.reset_start_button(self.view.yp_start, self.view.yp_stop, self.view.yp_openBrowser)
+                return False
+        else:
+            self.sig.error_message.emit("Error", "YellowPages Browser Window is Not Opened!")
+            self.states.reset_start_button(self.view.yp_start, self.view.yp_stop, self.view.yp_openBrowser)
+            return False
+        # CHANGING STATE TO "started"
+        YellowPages.state = "started"
+        # DATABASE SESSION VAR
+        session = Session()
+        # GETTING PAGES
+        pages_urls = YellowPages.get_pages_links()
+        # CONTINUING FOR LAST CHECKPOINT
+        if len(pages_urls) > 0:  # zero means that we found "?page=" in the current url .. means we are in the same search
+            YellowPages.pages = pages_urls
+        # SHOWING REPORT PANEL
+        self.view.listWidget.setCurrentRow(1)
+        #### PROCESS LOOP ####
+        for index, page in enumerate(YellowPages.pages):
+            # STOP EVENT CHECK
+            if YellowPages.state == "stopped":
+                break
+            if session.query(YellowPages).filter_by(page=page).first() is not None:
+                continue
+            # RANDOM DELAY
+            self.view.statusbar.showMessage(
+                ">>>    (YELLOW PAGES) - Delaying Randomly (15-25 seconds) to avoid block... ")
+            sleep(random.randint(15, 25))
+
+            if YellowPages.state == "started":
+                self.view.statusbar.showMessage(">>>    (YELLOW PAGES) - Scraping the data... ")
+
+            YellowPages.window.get(page)
+            sleep(5)
+            page_source = YellowPages.window.page_source
+            data = YellowPages.scrape_data(page_source)
+            for name, address, phone, email, website in data:
+                # STOP EVENT CHECK
+                if Yelp.state == "stopped":
+                    break
+                # PARSING THE ADDRESS TO STATE, CITY, STREET
+                if address != "---":
+                    parsed_address = self.parse_address(address)
+                else:
+                    parsed_address = {"street": "---", "state": "---", "city": "---"}
+                # CLEANING NUMBER FORMAT
+                phone = self.clean_phone_number(phone)
+                # ADDING TO YELLOW PAGES MODEL
+                yp_obj = YellowPagesModel(
+                    name=name,
+                    address=address,
+                    phone=phone,
+                    email=email,
+                    website=website,
+                    page=page
+                )
+                session.add(yp_obj)
+                session.commit()
+                # AVOIDING DUBLICATES DATA
+                if email == "---":
+                    report_record = session.query(Report).filter_by(phone=phone).first() if phone != "---" else None
+                elif phone == "---":
+                    report_record = session.query(Report).filter_by(email=email).first()
+                else:
+                    report_record = session.query(Report).filter(
+                        (Report.phone == phone) | (Report.email == email)).first()
+                if report_record is not None:
+                    continue
+                open_hours = "---"
+                search_keyword = "---"  # todo(FUTURE) - the client may ask for this..
+                report_obj = Report(
+                    name=name,
+                    email=email,
+                    phone=phone,
+                    website=website,
+                    fb_page="---",
+                    address=parsed_address["street"],
+                    state=parsed_address["state"],
+                    city=parsed_address["city"],
+                    open_hours=open_hours,
+                    search_keyword=search_keyword,
+                    source="Yellow Pages"
+                )
+                session.add(report_obj)
+                session.commit()
+                # ADDING TO UI
+                data = (name, email, phone, website, "---", parsed_address["street"],
+                        parsed_address["state"], parsed_address["city"], open_hours, search_keyword, "Yelp")
+                self.sig.add_to_tabelWidget.emit(data, self.view.tableWidget)
+        # COMPLETED ACTION
+        if YellowPages.state != "stopped":
+            self.sig.ok_message.emit("Yellow Pages Completed",
+                                     "Yellow Pages Completed Scraping Process Successfully ^_^")
+        else:
+            self.view.yp_stop.setText("")
+            self.view.yp_stop.setEnabled(True)
+        self.states.reset_start_button(self.view.yp_start, self.view.yp_stop, self.view.yp_openBrowser)
+        YellowPages.state = "idle"
+
+
 
 
 if __name__ == '__main__':

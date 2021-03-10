@@ -15,6 +15,7 @@ from scrape_emails import EmailScraper
 
 class Yelp:
     window = None
+    state = "idle"
     second_window = None
     window: Chrome
     results_elems = None
@@ -155,60 +156,60 @@ class Yelp:
             records.append(record)
         return records
 
-    @classmethod
-    def scrape_result_details(cls, url: str):
-        """
-        this method opens the url in a new tab and scrape the data then returns a list object
-        """
-        cls.window: Chrome
-        # OPENING THE URL IN A NEW TAB
-        cls.window.execute_script(f'''window.open("{url}", "_blank");''')
-        sleep(1)
-        cls.window.switch_to.window(cls.window.window_handles[-1])
-        sleep(2)
-        # EXPLICTLY WAIT FOR PAGE TO LOAD
-        WebDriverWait(cls.window, 60).until(ec.visibility_of_element_located((By.XPATH, '//a[contains(@class, "logo-link_")]')))
-        # WAIT FOR PAGE LOADING
-        WebDriverWait(cls.window, 60).until_not(ec.visibility_of_element_located((By.XPATH, cls.detailed_loading_div)))
-        # WEBSITE SCRAPING
-        try:
-            website_href_code = cls.window.find_element_by_xpath(cls.website).get_attribute("href")
-            website = cls._extract_url(website_href_code)
-        except NoSuchElementException:
-            website = "---"
-        # EMAIL SCRAPING
-        if website != "---":
-            email = EmailScraper.scrape_website(website)
-            if email is False:
-                email = "---"
-        else:
-            email = "---"
-        # PHONE SCRAPING
-        try:
-            phone = cls.window.find_element_by_xpath(cls.phone).text
-        except NoSuchElementException:
-            phone = "---"
-        # ADDRESS SCRAPING
-        try:
-            address = cls.window.find_element_by_xpath(cls.address).text
-        except NoSuchElementException:
-            address = "---"
-        # OPEN HOURS SCRAPING
-        try:
-            open_hours = cls.window.find_element_by_xpath(cls.open_hours).text
-        except NoSuchElementException:
-            open_hours = "---"
-        # CLOSING THE TAB AND GETTING BACK TO RESULTS PAGE
-        cls.window.close()
-        sleep(1)
-        cls.window.switch_to.window(cls.window.window_handles[0])
-        # DELAY: BREAKING BOT PATTERN
-        sleep(random.randint(2, 6))
-        record = [email, phone, website, address, open_hours]
-        return record
+    # @classmethod
+    # def scrape_result_details(cls, url: str):
+    #     """
+    #     this method opens the url in a new tab and scrape the data then returns a list object
+    #     """
+    #     cls.window: Chrome
+    #     # OPENING THE URL IN A NEW TAB
+    #     cls.window.execute_script(f'''window.open("{url}", "_blank");''')
+    #     sleep(1)
+    #     cls.window.switch_to.window(cls.window.window_handles[-1])
+    #     sleep(2)
+    #     # EXPLICTLY WAIT FOR PAGE TO LOAD
+    #     WebDriverWait(cls.window, 60).until(ec.visibility_of_element_located((By.XPATH, '//a[contains(@class, "logo-link_")]')))
+    #     # WAIT FOR PAGE LOADING
+    #     WebDriverWait(cls.window, 60).until_not(ec.visibility_of_element_located((By.XPATH, cls.detailed_loading_div)))
+    #     # WEBSITE SCRAPING
+    #     try:
+    #         website_href_code = cls.window.find_element_by_xpath(cls.website).get_attribute("href")
+    #         website = cls._extract_url(website_href_code)
+    #     except NoSuchElementException:
+    #         website = "---"
+    #     # EMAIL SCRAPING
+    #     if website != "---":
+    #         email = EmailScraper.scrape_website(website)
+    #         if email is False:
+    #             email = "---"
+    #     else:
+    #         email = "---"
+    #     # PHONE SCRAPING
+    #     try:
+    #         phone = cls.window.find_element_by_xpath(cls.phone).text
+    #     except NoSuchElementException:
+    #         phone = "---"
+    #     # ADDRESS SCRAPING
+    #     try:
+    #         address = cls.window.find_element_by_xpath(cls.address).text
+    #     except NoSuchElementException:
+    #         address = "---"
+    #     # OPEN HOURS SCRAPING
+    #     try:
+    #         open_hours = cls.window.find_element_by_xpath(cls.open_hours).text
+    #     except NoSuchElementException:
+    #         open_hours = "---"
+    #     # CLOSING THE TAB AND GETTING BACK TO RESULTS PAGE
+    #     cls.window.close()
+    #     sleep(1)
+    #     cls.window.switch_to.window(cls.window.window_handles[0])
+    #     # DELAY: BREAKING BOT PATTERN
+    #     sleep(random.randint(2, 6))
+    #     record = [email, phone, website, address, open_hours]
+    #     return record
 
     @classmethod
-    def scrape_result_details2(cls, url: str):
+    def scrape_result_details(cls, url: str):
         if not cls.is_browser_opened(cls.second_window):
             options = Options()
             options.add_argument("--headless")

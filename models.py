@@ -50,16 +50,16 @@ class YelpResults(Base):
     search_keyword = Column(String(200))
     page = Column(Integer)
 
-class YellowPagesResults(Base):
+
+class YellowPagesModel(Base):
     __tablename__ = "yellowpages"
     id = Column(Integer, primary_key=True)
     name = Column(String(200))
-    reviews = Column(Integer)
-    verfied_license = Column(Integer)
-    category = Column(String(200))
-    years_in_business = Column(String(200))
-    search_keyword = Column(String(200))
-    page = Column(Integer)
+    address = Column(String(200))
+    phone = Column(String(100))
+    email = Column(String(200))
+    website = Column(String(200))
+    page = Column(String(300))
 
 
 class FacebookPages(Base):
