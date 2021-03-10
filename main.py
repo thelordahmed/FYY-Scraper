@@ -159,6 +159,18 @@ class Main:
         else:
             return False
 
+    def clear_btn_func(self):
+        res = self.view.confirmMessage("Confirm", "The data will be deleted, Are you sure?", "warning")
+        if res:
+            session = Session()
+            session.query(Report).delete()
+            session.query(YelpResults).delete()
+            session.query(YellowPagesModel).delete()
+            session.query(FacebookPages).delete()
+            session.commit()
+            self.view.tableWidget.setRowCount(0)
+
+
     @staticmethod
     def process_start(process_func, start_btn, stop_btn):
         threading.Thread(target=process_func).start()
@@ -228,6 +240,7 @@ class Main:
                 break
             results = Yelp.scrape_results()
             for name, reviews, verfied, search_keyword, page, url in results:
+                self.view.statusbar.showMessage(f"    (YELP) - Scraping '{name}'...")
                 # STOP EVENT CHECK
                 if Yelp.state == "stopped":
                     break
@@ -299,13 +312,14 @@ class Main:
         if Yelp.state != "stopped":
             self.sig.ok_message.emit("Yelp Completed",
                                      "Yelp Completed Scraping Process Successfully ^_^")
+
         else:
             # RESETING STOP BUTTON
             self.view.yelp_stop.setText("")
             self.view.yelp_stop.setEnabled(True)
         self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop, self.view.yelp_openBrowser)
         Yelp.state = "idle"
-
+        self.view.statusbar.showMessage(f"")
 
     def fb_open_browser(self):
         if self.is_browser_opened(Facebook.window) is False:
@@ -384,7 +398,7 @@ class Main:
             YellowPages.window.get(page)
             sleep(5)
             page_source = YellowPages.window.page_source
-            data = YellowPages.scrape_data(page_source)
+            data = YellowPages.scrape_data(page_source, self.view.statusbar)
             for name, address, phone, email, website in data:
                 # STOP EVENT CHECK
                 if Yelp.state == "stopped":
@@ -447,6 +461,7 @@ class Main:
             self.view.yp_stop.setEnabled(True)
         self.states.reset_start_button(self.view.yp_start, self.view.yp_stop, self.view.yp_openBrowser)
         YellowPages.state = "idle"
+        self.view.statusbar.showMessage("")
 
 
 

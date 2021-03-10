@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>720</width>
-    <height>624</height>
+    <width>693</width>
+    <height>688</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -521,7 +521,7 @@ QListView::item:!selected {
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>300</height>
+               <height>280</height>
               </size>
              </property>
              <property name="font">
@@ -605,6 +605,23 @@ QListView::item:!selected {
              <property name="bottomMargin">
               <number>0</number>
              </property>
+             <item alignment="Qt::AlignRight">
+              <widget class="QPushButton" name="clear_btn">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Clear</string>
+               </property>
+               <property name="icon">
+                <iconset resource="../Whatsapp-bulk-sender/images.qrc">
+                 <normaloff>:/black-icons/Data/imgs/black icons/icons8-trash-500.png</normaloff>:/black-icons/Data/imgs/black icons/icons8-trash-500.png</iconset>
+               </property>
+              </widget>
+             </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_4">
                <property name="spacing">

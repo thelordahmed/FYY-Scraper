@@ -17,6 +17,8 @@ class Connections:
             filter_keyword=self.view.source_cb.currentText(),
             sort_keyword=self.view.sortBy_cb.currentText()
         ))
+        # CLEAR BUTTON
+        self.view.clear_btn.clicked.connect(self.main.clear_btn_func)
         # YELP BUTTONS
         self.view.yelp_openBrowser.clicked.connect(self.main.yelp_openBrowser)
         self.view.yelp_start.clicked.connect(lambda: self.main.process_start(self.main.yelp_process, self.view.yelp_start, self.view.yelp_stop))

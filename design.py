@@ -20,7 +20,7 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.setWindowModality(Qt.WindowModal)
-        MainWindow.resize(720, 624)
+        MainWindow.resize(693, 688)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
@@ -135,8 +135,9 @@ class Ui_MainWindow(object):
         sizePolicy2.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
         self.groupBox.setSizePolicy(sizePolicy2)
         font = QFont()
-        font.setPointSize(14)
-        # font.setWeight(60)
+        font.setPointSize(16)
+        font.setBold(True)
+        font.setWeight(75)
         self.groupBox.setFont(font)
         self.groupBox.setStyleSheet(u"")
         self.horizontalLayout = QHBoxLayout(self.groupBox)
@@ -316,7 +317,7 @@ class Ui_MainWindow(object):
         __qtablewidgetitem10 = QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(10, __qtablewidgetitem10)
         self.tableWidget.setObjectName(u"tableWidget")
-        self.tableWidget.setMinimumSize(QSize(0, 300))
+        self.tableWidget.setMinimumSize(QSize(0, 280))
         font1 = QFont()
         font1.setPointSize(10)
         font1.setBold(False)
@@ -332,6 +333,19 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.setSpacing(0)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.verticalLayout_4.setContentsMargins(-1, -1, -1, 0)
+        self.clear_btn = QPushButton(self.report)
+        self.clear_btn.setObjectName(u"clear_btn")
+        sizePolicy5 = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+        sizePolicy5.setHorizontalStretch(0)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.clear_btn.sizePolicy().hasHeightForWidth())
+        self.clear_btn.setSizePolicy(sizePolicy5)
+        icon5 = QIcon()
+        icon5.addFile(u":/black-icons/Data/imgs/black icons/icons8-trash-500.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.clear_btn.setIcon(icon5)
+
+        self.verticalLayout_4.addWidget(self.clear_btn, 0, Qt.AlignRight)
+
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setSpacing(0)
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
@@ -375,9 +389,6 @@ class Ui_MainWindow(object):
 
         self.export_btn = QPushButton(self.report)
         self.export_btn.setObjectName(u"export_btn")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
-        sizePolicy5.setHorizontalStretch(0)
-        sizePolicy5.setVerticalStretch(0)
         sizePolicy5.setHeightForWidth(self.export_btn.sizePolicy().hasHeightForWidth())
         self.export_btn.setSizePolicy(sizePolicy5)
         self.export_btn.setStyleSheet(u"padding:10px 30px")
@@ -457,14 +468,14 @@ class Ui_MainWindow(object):
         self.commandLinkButton.setCursor(QCursor(Qt.PointingHandCursor))
         self.commandLinkButton.setStyleSheet(u"background: transparent;\n"
 "border:0")
-        icon5 = QIcon()
+        icon6 = QIcon()
         iconThemeName = u";"
         if QIcon.hasThemeIcon(iconThemeName):
-            icon5 = QIcon.fromTheme(iconThemeName)
+            icon6 = QIcon.fromTheme(iconThemeName)
         else:
-            icon5.addFile(u"../Yellow Pages sg", QSize(), QIcon.Normal, QIcon.Off)
+            icon6.addFile(u"../Yellow Pages sg", QSize(), QIcon.Normal, QIcon.Off)
         
-        self.commandLinkButton.setIcon(icon5)
+        self.commandLinkButton.setIcon(icon6)
 
         self.horizontalLayout_13.addWidget(self.commandLinkButton, 0, Qt.AlignLeft)
 
@@ -535,6 +546,7 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem9.setText(QCoreApplication.translate("MainWindow", u"Search Keyword", None));
         ___qtablewidgetitem10 = self.tableWidget.horizontalHeaderItem(10)
         ___qtablewidgetitem10.setText(QCoreApplication.translate("MainWindow", u"Source", None));
+        self.clear_btn.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
         self.groupBox_5.setTitle(QCoreApplication.translate("MainWindow", u"Sort By:", None))
         self.sortBy_cb.setItemText(0, QCoreApplication.translate("MainWindow", u"name", None))
         self.sortBy_cb.setItemText(1, QCoreApplication.translate("MainWindow", u"address", None))

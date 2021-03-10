@@ -38,7 +38,7 @@ class YellowPages:
         return pages
 
     @staticmethod
-    def scrape_data(page_source, scrape_emails=True):
+    def scrape_data(page_source, statusbar_object, scrape_emails=True):
         """
         returns list of lists - [[name, address, phone, email, website], ...]
         """
@@ -49,7 +49,8 @@ class YellowPages:
             try:
                 name = result.find("h2", class_="n").span.text.strip()
             except AttributeError:
-                name = "-"
+                name = "---"
+            statusbar_object.showMessage(f"    (Yellow Pages) - Scraping '{name}'...")
 
             ##############
             # getting the full address
