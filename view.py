@@ -17,7 +17,6 @@ class View(QMainWindow, design):
         self.setupUi(self)
         self.show()
         self.session = Session()
-        self.groupBox_3.setDisabled(True)   # todo
         # todo - activate the license key
         # self.api_url = api_url
         self.setWindowTitle(f"FYY Scraper {controller.version}")

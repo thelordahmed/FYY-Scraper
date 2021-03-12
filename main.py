@@ -46,12 +46,18 @@ class Main:
         this method will parse full usa address to city, state and street address
         """
         adr = usaddress.tag(address)
-        city = adr[0]["PlaceName"]
-        state = adr[0]["StateName"]
+        try:
+            city = adr[0]["PlaceName"]
+        except:
+            city = "---"
+        try:
+            state = adr[0]["StateName"]
+        except:
+            state = "---"
         if adr[1] != "Ambiguous":
             street_address = address.replace(city, "").replace(state, "")
         else:
-            street_address = "--"
+            street_address = "---"
         return {
             "city": city,
             "state": state,
@@ -175,9 +181,10 @@ class Main:
 
     @staticmethod
     def process_start(process_func, start_btn, stop_btn):
-        threading.Thread(target=process_func).start()
         start_btn.setDisabled(True)
         stop_btn.setEnabled(True)
+        threading.Thread(target=process_func).start()
+
 
     @staticmethod
     def stop_button_func(target_class, stop_btn):
@@ -313,10 +320,11 @@ class Main:
                     break
         # HANDELING UNKNOWN ERRORS
         except Exception as e:
+            Yelp.state = "error"
             self.sig.error_message.emit("Error",
                                         f"Something Wrong Happened\nError:\n{e}\ntraceback:\n{traceback.extract_tb(e.__traceback__)}")
         # COMPLETED ACTION
-        if Yelp.state != "stopped":
+        if Yelp.state != "stopped" and Yelp.state != "error":
             self.sig.ok_message.emit("Yelp Completed",
                                      "Yelp Completed Scraping Process Successfully ^_^")
         else:
@@ -336,24 +344,118 @@ class Main:
 
 
     def fb_process(self):
-        session = Session()
-        # CHECK IF LOGGED IN
-        if Facebook.login_check() is False:
-            self.sig.error_message.emit("Error", "Facebook Browser Window is Not Opened!")
-            self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
-            return False
-        # GET SEARCH RESULTS
-        pages = Facebook.get_pages_urls()
-        if pages is False:
-            self.sig.error_message.emit("Error", "search reults not found, please make your search first!")
-            self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
-            return False
-        for page in pages:
-            url, name = page[0], page[1]
-            record = session.query(FacebookPages).filter_by(url=url, name=name).first()
-            # CHECK IF PAGE WAS SCRAPED BEFORE
-            if record is not None:
-                continue
+        try:
+            # CHECK IF BROWSER OPENED
+            if Facebook.window is not None:
+                try:
+                    print(Facebook.window.current_window_handle)
+                except NoSuchWindowException and WebDriverException:
+                    self.sig.error_message.emit("Error", "Facebook Browser Window is Not Opened!")
+                    self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
+                    return False
+            else:
+                self.sig.error_message.emit("Error", "Facebook Browser Window is Not Opened!")
+                self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
+                return False
+            # CHANGING STATE TO "started"
+            Facebook.state = "started"
+            # DATABASE SESSION VAR
+            session = Session()
+            # CHECK IF LOGGED IN
+            if Facebook.login_check() is False:
+                self.sig.error_message.emit("Error", "You're Not Logged in!")
+                self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
+                return False
+            # GET SEARCH RESULTS
+            self.view.statusbar.showMessage("    (Facebook) - Processing Pages...")
+            pages = Facebook.get_results_urls()
+            self.view.statusbar.showMessage("")
+            if pages is False:
+                self.sig.error_message.emit("Error", "search reults not found, please make your search first!")
+                self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
+                return False
+            # SHOWING REPORT PANEL
+            self.view.listWidget.setCurrentRow(1)
+            # GETTING THE SEARCH KEYWORD
+            search_keyword = Facebook.window.find_element_by_xpath(Facebook.search_input).get_attribute("value")
+            #### PROCESS LOOP ####
+            for url, name in pages:
+                # STOP EVENT CHECK
+                if Facebook.state == "stopped":
+                    break
+                record = session.query(FacebookPages).filter_by(url=url, name=name).first()
+                # CHECK IF PAGE WAS SCRAPED BEFORE
+                if record is not None:
+                    continue
+                # SCRAPING THE PAGE DETAILS
+                self.view.statusbar.showMessage(f"    (Facebook) -  Scraping '{name}'...")
+                page_details = Facebook.scrape_details(url)
+                self.view.statusbar.showMessage(f"")
+                if page_details is False:
+                    self.view.statusbar.showMessage(f"    (Facebook) -  No Information available in {name}...")
+                    sleep(random.randint(1, 3))
+                    self.view.statusbar.showMessage(f"")
+                    continue
+                # RANDOM SLEEP
+                sleep(random.randint(2, 4))
+                address, website, email, phone, open_hours = page_details[0], page_details[1], page_details[2], page_details[3], page_details[4]
+                # PARSING THE ADDRESS TO STATE, CITY, STREET
+                if address != "---":
+                    parsed_address = self.parse_address(address)
+                else:
+                    parsed_address = {"street": "---", "state": "---", "city": "---"}
+
+                # CLEANING NUMBER FORMAT
+                phone = self.clean_phone_number(phone)
+                # ADDING TO FACEBOOK MODEL
+                fb_model = FacebookPages(name=name, url=url)
+                session.add(fb_model)
+                session.commit()
+                # AVOIDING DUBLICATES DATA
+                if email == "---":
+                    report_record = session.query(Report).filter_by(phone=phone).first() if phone != "---" else None
+                elif phone == "---":
+                    report_record = session.query(Report).filter_by(email=email).first()
+                else:
+                    report_record = session.query(Report).filter(
+                        (Report.phone == phone) | (Report.email == email)).first()
+                if report_record is not None:
+                    continue
+                report_obj = Report(
+                    name=name,
+                    email=email,
+                    phone=phone,
+                    website=website,
+                    fb_page=url,
+                    address=parsed_address["street"],
+                    state=parsed_address["state"],
+                    city=parsed_address["city"],
+                    open_hours=open_hours,
+                    search_keyword=search_keyword,
+                    source="Facebook"
+                )
+                session.add(report_obj)
+                session.commit()
+                # ADDING TO UI
+                data = (name, email, phone, website, url, parsed_address["street"],
+                        parsed_address["state"], parsed_address["city"], open_hours, search_keyword, "Facebook")
+                self.sig.add_to_tabelWidget.emit(data, self.view.tableWidget)
+        except Exception as e:
+            Facebook.state = "error"
+            self.sig.error_message.emit("Error",
+                                        f"Something Wrong Happened\nError:\n{e}\ntraceback:\n{traceback.extract_tb(e.__traceback__)}")
+        # COMPLETED ACTION
+        if Facebook.state != "stopped" and Facebook.state != "error":
+            self.sig.ok_message.emit("Facebook Completed",
+                                     "Facebook Completed Scraping Process Successfully ^_^")
+        else:
+            self.view.fb_stop.setText("")
+            self.view.fb_stop.setEnabled(True)
+        self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
+        Facebook.state = "idle"
+        self.view.statusbar.showMessage("")
+
+
 
     def yp_open_browser(self):
         if self.is_browser_opened(YellowPages.window) is False:
@@ -461,10 +563,12 @@ class Main:
                     self.sig.add_to_tabelWidget.emit(data, self.view.tableWidget)
         # HANDELING UNKNOWN ERRORS
         except Exception as e:
+            YellowPages.state = "error"
             self.sig.error_message.emit("Error",
                                         f"Something Wrong Happened\nError:\n{e}\ntraceback:\n{traceback.extract_tb(e.__traceback__)}")
+
         # COMPLETED ACTION
-        if YellowPages.state != "stopped":
+        if YellowPages.state != "stopped" and YellowPages.state != "error":
             self.sig.ok_message.emit("Yellow Pages Completed",
                                      "Yellow Pages Completed Scraping Process Successfully ^_^")
         else:
