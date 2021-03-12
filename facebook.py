@@ -83,7 +83,6 @@ class Facebook:
                 # SKIPPING COMPLETED PAGES
                 if elem in completed_elements:
                     continue
-                sleep(0.2)
                 url = elem.get_attribute("href")
                 # FIXING A BUG - SHOWING WERID RESULTS AT THE BEGINING OF THE ELEMENTS LIST
                 try:
