@@ -160,8 +160,9 @@ class Main:
             # ALLOW USER TO CHOOSE THE CSV FILE LOCATION
             path = self.view.saveDialog()
             with open(path, "w", encoding="utf-8", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["Name", "Email", "Phone", "Website", "Facbook Page", "Address", "State", "City", "Open Hours", "Search Keyword", "Source"])
                 for row in reports:
-                    writer = csv.writer(f)
                     writer.writerow(row)
         except Exception as e:
             print(e)
@@ -407,8 +408,6 @@ class Main:
                 # STOP EVENT CHECK
                 if Facebook.state == "stopped":
                     break
-                # RANDOM DELAY
-                sleep(random.randint(1, 5))
                 # LIMIT COUNTER CHECK
                 if counter >= 20:
                     counter = 0
@@ -419,6 +418,8 @@ class Main:
                 record = session.query(FacebookPages).filter_by(url=url, name=name).first()
                 if record is not None:
                     continue
+                # RANDOM DELAY
+                sleep(random.randint(1, 5))
                 # ADDING TO FACEBOOK MODEL
                 fb_model = FacebookPages(name=name, url=url)
                 session.add(fb_model)
