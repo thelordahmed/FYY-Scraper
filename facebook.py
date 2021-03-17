@@ -1,7 +1,7 @@
 import random
 from time import sleep
 
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
@@ -10,6 +10,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from webdriver_manager.chrome import ChromeDriverManager
 import controller
 import re
+import json
 
 
 
@@ -23,6 +24,7 @@ class Facebook:
     ajax_loader = '//div[@aria-busy and @role="progressbar" and @data-visualcompletion="loading-state"]'
     pages_category_btn = '//div[@data-visualcompletion="ignore-dynamic"]/a[contains(@href, "search/pages")]'
     pages_category_btn_active = '//div[@data-visualcompletion="ignore-dynamic"]/a[contains(@href, "search/pages") and @aria-current="page"]'
+    end_of_results = '//div[not(@class)]/div[@class]/div[@class]/div[@class]/span[@class][text()]'
     # search_result_name = '//div[@role="article"]//a[@role="link" and @tabindex and @class and @aria-label]'
     search_result_name = '//div[@role="article"]//a[@role="link"]'
     # TO CHECK IF PAGE LOADED OR NOT
@@ -45,6 +47,7 @@ class Facebook:
         cls.window = Chrome(ChromeDriverManager().install(), options=options)
         cls.window.implicitly_wait(5)
         cls.window.get("https://www.facebook.com")
+        cls.window.maximize_window()
 
     @classmethod
     def login_check(cls):
@@ -63,6 +66,7 @@ class Facebook:
         returns list of lists [[url, name]]
         returns False if search page doesn't exists
         """
+
         # CHECK IF CURRENT PAGE IS SEARCH PAGE
         if "search/pages" not in cls.window.current_url:
             try:
@@ -70,12 +74,12 @@ class Facebook:
                 WebDriverWait(cls.window, 5).until(ec.visibility_of_element_located((By.XPATH, cls.pages_category_btn_active)))
             except NoSuchElementException:
                 return False
+        search_keyword = cls.window.find_element_by_xpath(cls.search_input).get_attribute("value")
         results = []  # [url, name]
         completed_elements = []
         # to check on the last iter
         last_loop_iter = False
         while True:
-            # todo- I may need to switch to window here to set focus on it - maybe just for mac
             # MAKE SURE THAT THE AJAX LOADER DOESN'T EXISTS
             WebDriverWait(cls.window, 10).until(ec.invisibility_of_element_located((By.XPATH, cls.ajax_loader)))
             elements = cls.window.find_elements_by_xpath(cls.search_result_name)
@@ -83,30 +87,53 @@ class Facebook:
                 # SKIPPING COMPLETED PAGES
                 if elem in completed_elements:
                     continue
-                url = elem.get_attribute("href")
-                # FIXING A BUG - SHOWING WERID RESULTS AT THE BEGINING OF THE ELEMENTS LIST
+                # AVOIDING THE STALE ELEMENTS
                 try:
-                    name = elem.find_element_by_xpath("span[1]").text
-                except NoSuchElementException:
+                    url = elem.get_attribute("href")
+                    # FIXING A BUG - SHOWING WERID RESULTS AT THE BEGINING OF THE ELEMENTS LIST
+                    try:
+                        name = elem.find_element_by_xpath("span[1]").text
+                    except NoSuchElementException:
+                        continue
+                    # SCROLLING THE LAST ELEMENT
+                    cls.window.execute_script("arguments[0].scrollIntoView();", elem)
+                except StaleElementReferenceException:
+                    break
+                # AVOIDING WRONG ELEMENTS
+                if "__cft__" in url or "/search/pages/" in url or "/groups/" in url:
                     continue
                 # name = elem.text
                 result = [url, name]
                 completed_elements.append(elem)
                 print(result)
                 results.append(result)
-            # SCROLLING THE LAST ELEMENT
-            cls.window.execute_script("arguments[0].scrollIntoView();", elements[-1])
             if last_loop_iter is True:
                 break
-            # check if the ajax loader exists >>> if it exists >>> keep going.. that means we still have more pages to show
+            # GET BACK TO LOOP IF THERE ARE MORE ELEMENTS TO LOAD
+            sleep(2)
             try:
-                WebDriverWait(cls.window, 10).until(ec.visibility_of_element_located((By.XPATH, cls.ajax_loader)))
-                continue
-            except TimeoutException:
-                # if ajax loader has gone, that means we have loaded the last elements but it will not be scraped
-                # so it will loop one last time and break after that to get the last shown elements
+                cls.window.find_element_by_xpath(cls.end_of_results)
                 last_loop_iter = True
                 continue
+            except NoSuchElementException:
+                WebDriverWait(cls.window, 20).until(ec.invisibility_of_element_located((By.XPATH, cls.ajax_loader)))
+
+
+            # # check if the ajax loader exists >>> if it exists >>> keep going.. that means we still have more pages to show
+            # try:
+            #     WebDriverWait(cls.window, 10).until(ec.visibility_of_element_located((By.XPATH, cls.ajax_loader)))
+            #     continue
+            # except TimeoutException:
+            #     # if ajax loader has gone, that means we have loaded the last elements but it will not be scraped
+            #     # so it will loop one last time and break after that to get the last shown elements
+            #     last_loop_iter = True
+            #     continue
+        with open(controller.fb_processed_json, "w") as f:
+            obj = {
+                "search_keyword": search_keyword,
+                "results": results
+            }
+            f.write(json.dumps(obj))
         return results
 
     @classmethod

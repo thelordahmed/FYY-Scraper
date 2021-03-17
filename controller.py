@@ -7,6 +7,7 @@ if system() == "Darwin":
 else:
     data_folder = "Data"
 browser_folder = os.path.join(data_folder, "browserData")
+fb_processed_json = os.path.join(data_folder, "fb_processed_pages.json")
 
 version = "1.0.0"
 copyright_text = "AhmeDSaeeD | (lordahmed on Fiverr)"

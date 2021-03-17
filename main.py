@@ -15,8 +15,11 @@ from connections import Connections
 from states import States
 from yellowpages import YellowPages
 import traceback
+import controller
+import json
 # cx-freeeze imports
 import fractions
+from sqlalchemy.sql import default_comparator
 
 
 class Signals(QtCore.QObject):
@@ -45,7 +48,15 @@ class Main:
         """
         this method will parse full usa address to city, state and street address
         """
-        adr = usaddress.tag(address)
+        # AVOIDING BUGS
+        try:
+            adr = usaddress.tag(address)
+        except:
+            return {
+                "city": "---",
+                "state": "---",
+                "street": address
+            }
         try:
             city = adr[0]["PlaceName"]
         except:
@@ -162,7 +173,7 @@ class Main:
             try:
                 print(window_check_var.current_window_handle)
                 return True
-            except NoSuchWindowException and WebDriverException:
+            except:
                 return False
         else:
             return False
@@ -178,20 +189,16 @@ class Main:
             session.commit()
             self.view.tableWidget.setRowCount(0)
 
-
     @staticmethod
     def process_start(process_func, start_btn, stop_btn):
         start_btn.setDisabled(True)
         stop_btn.setEnabled(True)
         threading.Thread(target=process_func).start()
 
-
-    @staticmethod
-    def stop_button_func(target_class, stop_btn):
+    def stop_button_func(self, target_class, stop_btn):
         target_class.state = "stopped"
         stop_btn.setDisabled(True)
         stop_btn.setText("Stopping...")
-        # self.view.statusbar.showMessage(f"    ({target_class.__name__}) - Stopping in Progress...", 2000)
 
     def yelp_openBrowser(self):
         if Yelp.window is not None:
@@ -205,7 +212,6 @@ class Main:
         sleep(3)
         self.view.yelp_openBrowser.setEnabled(True)
 
-
     def yelp_process(self):
         try:
             # CHECK IF BROWSER OPENED
@@ -214,7 +220,8 @@ class Main:
                     print(Yelp.window.current_window_handle)
                 except NoSuchWindowException and WebDriverException:
                     self.sig.error_message.emit("Error", "Yelp Browser Window is Not Opened!")
-                    self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop, self.view.yelp_openBrowser)
+                    self.states.reset_start_button(self.view.yelp_start, self.view.yelp_stop,
+                                                   self.view.yelp_openBrowser)
                     return False
             else:
                 self.sig.error_message.emit("Error", "Yelp Browser Window is Not Opened!")
@@ -261,7 +268,8 @@ class Main:
                         continue
                     # SCRAPING RESULT DETAILS
                     result_details = Yelp.scrape_result_details(url)
-                    email, phone, website, address, open_hours = result_details[0], result_details[1], result_details[2], \
+                    email, phone, website, address, open_hours = result_details[0], result_details[1], result_details[
+                        2], \
                                                                  result_details[3], result_details[4]
                     # PARSING THE ADDRESS TO STATE, CITY, STREET
                     if address != "---":
@@ -342,14 +350,13 @@ class Main:
             sleep(3)
             self.view.fb_openBrowser.setEnabled(True)
 
-
     def fb_process(self):
         try:
             # CHECK IF BROWSER OPENED
             if Facebook.window is not None:
                 try:
                     print(Facebook.window.current_window_handle)
-                except NoSuchWindowException and WebDriverException:
+                except:
                     self.sig.error_message.emit("Error", "Facebook Browser Window is Not Opened!")
                     self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
                     return False
@@ -366,30 +373,57 @@ class Main:
                 self.sig.error_message.emit("Error", "You're Not Logged in!")
                 self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
                 return False
-            # GET SEARCH RESULTS
-            self.view.statusbar.showMessage("    (Facebook) - Processing Pages...")
-            pages = Facebook.get_results_urls()
-            self.view.statusbar.showMessage("")
-            if pages is False:
-                self.sig.error_message.emit("Error", "search reults not found, please make your search first!")
-                self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
-                return False
+            # GETTING THE KEYWORD
+            search_keyword = Facebook.window.find_element_by_xpath(Facebook.search_input).get_attribute("value")
+            # CHECKPOINT CONTINUE
+            pages = None
+            try:
+                with open(controller.fb_processed_json, "r") as f:
+                    json_obj = json.loads(f.read())
+                    if search_keyword == json_obj["search_keyword"]:
+                        pages = json_obj["results"]
+            except:
+                pass
+            if pages is None:
+                # GET SEARCH RESULTS
+                self.view.statusbar.showMessage("    (Facebook) - Processing Pages...")
+                pages = Facebook.get_results_urls()
+                self.view.statusbar.showMessage("")
+                if pages is False:
+                    self.sig.error_message.emit("Error", "search reults not found, please make your search first!")
+                    self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
+                    return False
+
             # SHOWING REPORT PANEL
             self.view.listWidget.setCurrentRow(1)
-            # GETTING THE SEARCH KEYWORD
-            search_keyword = Facebook.window.find_element_by_xpath(Facebook.search_input).get_attribute("value")
+            # LIMIT COUNTER
+            counter = 0
             #### PROCESS LOOP ####
             for url, name in pages:
                 # STOP EVENT CHECK
                 if Facebook.state == "stopped":
                     break
-                record = session.query(FacebookPages).filter_by(url=url, name=name).first()
+                # RANDOM DELAY
+                sleep(random.randint(1, 5))
+                # LIMIT COUNTER CHECK
+                if counter >= 20:
+                    counter = 0
+                    self.view.statusbar.showMessage(f"    (Facebook) -  Random Delay From 10 to 25 seconds to avoid block")
+                    sleep(random.randint(10, 25))
+                    self.view.statusbar.showMessage(f"")
                 # CHECK IF PAGE WAS SCRAPED BEFORE
+                record = session.query(FacebookPages).filter_by(url=url, name=name).first()
                 if record is not None:
                     continue
+                # ADDING TO FACEBOOK MODEL
+                fb_model = FacebookPages(name=name, url=url)
+                session.add(fb_model)
+                session.commit()
                 # SCRAPING THE PAGE DETAILS
                 self.view.statusbar.showMessage(f"    (Facebook) -  Scraping '{name}'...")
                 page_details = Facebook.scrape_details(url)
+                # +1 COUTNER WHEN OPENING A PAGE
+                counter += 1
                 self.view.statusbar.showMessage(f"")
                 if page_details is False:
                     self.view.statusbar.showMessage(f"    (Facebook) -  No Information available in {name}...")
@@ -398,7 +432,8 @@ class Main:
                     continue
                 # RANDOM SLEEP
                 sleep(random.randint(2, 4))
-                address, website, email, phone, open_hours = page_details[0], page_details[1], page_details[2], page_details[3], page_details[4]
+                address, website, email, phone, open_hours = page_details[0], page_details[1], page_details[2], \
+                                                             page_details[3], page_details[4]
                 # PARSING THE ADDRESS TO STATE, CITY, STREET
                 if address != "---":
                     parsed_address = self.parse_address(address)
@@ -407,10 +442,6 @@ class Main:
 
                 # CLEANING NUMBER FORMAT
                 phone = self.clean_phone_number(phone)
-                # ADDING TO FACEBOOK MODEL
-                fb_model = FacebookPages(name=name, url=url)
-                session.add(fb_model)
-                session.commit()
                 # AVOIDING DUBLICATES DATA
                 if email == "---":
                     report_record = session.query(Report).filter_by(phone=phone).first() if phone != "---" else None
@@ -454,8 +485,7 @@ class Main:
         self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
         Facebook.state = "idle"
         self.view.statusbar.showMessage("")
-
-
+        Facebook.window.quit()
 
     def yp_open_browser(self):
         if self.is_browser_opened(YellowPages.window) is False:
@@ -485,7 +515,8 @@ class Main:
             # GETTING PAGES
             pages_urls = YellowPages.get_pages_links()
             # CONTINUING FOR LAST CHECKPOINT
-            if len(pages_urls) > 0:  # zero means that we found "?page=" in the current url .. means we are in the same search
+            if len(
+                    pages_urls) > 0:  # zero means that we found "?page=" in the current url .. means we are in the same search
                 YellowPages.pages = pages_urls
             # SHOWING REPORT PANEL
             self.view.listWidget.setCurrentRow(1)
@@ -577,8 +608,6 @@ class Main:
         self.states.reset_start_button(self.view.yp_start, self.view.yp_stop, self.view.yp_openBrowser)
         YellowPages.state = "idle"
         self.view.statusbar.showMessage("")
-
-
 
 
 if __name__ == '__main__':
