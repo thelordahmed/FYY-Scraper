@@ -1,13 +1,15 @@
 import random
 from time import sleep
 
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException, \
+    InvalidArgumentException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.action_chains import ActionChains
 import controller
 import re
 import json
@@ -44,7 +46,12 @@ class Facebook:
     def open(cls):
         options = Options()
         options.add_argument(f"--user-data-dir={controller.browser_folder}")
-        cls.window = Chrome(ChromeDriverManager().install(), options=options)
+        try:
+            cls.window = Chrome(ChromeDriverManager().install(), options=options)
+        except InvalidArgumentException:
+            cls.window.quit()
+            sleep(1)
+            cls.window = Chrome(ChromeDriverManager().install(), options=options)
         cls.window.implicitly_wait(5)
         cls.window.get("https://www.facebook.com")
         cls.window.maximize_window()
@@ -83,6 +90,8 @@ class Facebook:
             # MAKE SURE THAT THE AJAX LOADER DOESN'T EXISTS
             WebDriverWait(cls.window, 10).until(ec.invisibility_of_element_located((By.XPATH, cls.ajax_loader)))
             elements = cls.window.find_elements_by_xpath(cls.search_result_name)
+            actions = ActionChains(cls.window)
+            cls.window.switch_to.window(cls.window.current_window_handle)
             for elem in elements:
                 # SKIPPING COMPLETED PAGES
                 if elem in completed_elements:

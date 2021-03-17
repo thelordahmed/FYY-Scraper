@@ -8,7 +8,7 @@ import threading
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from sqlalchemy import func
 from view import View
-from models import Report, YelpResults, YellowPagesModel, FacebookPages, Session
+from models import Report, YelpResults, YellowPagesResults, FacebookPages, Session
 from yelp import Yelp
 from facebook import Facebook
 from connections import Connections
@@ -184,7 +184,7 @@ class Main:
             session = Session()
             session.query(Report).delete()
             session.query(YelpResults).delete()
-            session.query(YellowPagesModel).delete()
+            session.query(YellowPagesResults).delete()
             session.query(FacebookPages).delete()
             session.commit()
             self.view.tableWidget.setRowCount(0)
@@ -195,7 +195,8 @@ class Main:
         stop_btn.setEnabled(True)
         threading.Thread(target=process_func).start()
 
-    def stop_button_func(self, target_class, stop_btn):
+    @staticmethod
+    def stop_button_func(target_class, stop_btn):
         target_class.state = "stopped"
         stop_btn.setDisabled(True)
         stop_btn.setText("Stopping...")
@@ -326,6 +327,9 @@ class Main:
                 if Yelp.click_next_page() is False:
                     self.sig.ok_message.emit("Yelp Note", "Yelp Completed Successfully ^_^")
                     break
+        except WebDriverException:
+            Yelp.state = "error"
+            self.sig.error_message.emit("Error", "Internet Connetion Lost!")
         # HANDELING UNKNOWN ERRORS
         except Exception as e:
             Yelp.state = "error"
@@ -442,6 +446,10 @@ class Main:
 
                 # CLEANING NUMBER FORMAT
                 phone = self.clean_phone_number(phone)
+                # ADDING TO FACEBOOK MODEL
+                fb_model = FacebookPages(name=name, url=url)
+                session.add(fb_model)
+                session.commit()
                 # AVOIDING DUBLICATES DATA
                 if email == "---":
                     report_record = session.query(Report).filter_by(phone=phone).first() if phone != "---" else None
@@ -471,6 +479,9 @@ class Main:
                 data = (name, email, phone, website, url, parsed_address["street"],
                         parsed_address["state"], parsed_address["city"], open_hours, search_keyword, "Facebook")
                 self.sig.add_to_tabelWidget.emit(data, self.view.tableWidget)
+        except WebDriverException:
+            Facebook.state = "error"
+            self.sig.error_message.emit("Error", "Internet Connetion Lost!")
         except Exception as e:
             Facebook.state = "error"
             self.sig.error_message.emit("Error",
@@ -512,37 +523,61 @@ class Main:
             YellowPages.state = "started"
             # DATABASE SESSION VAR
             session = Session()
-            # GETTING PAGES
-            pages_urls = YellowPages.get_pages_links()
             # CONTINUING FOR LAST CHECKPOINT
-            if len(
-                    pages_urls) > 0:  # zero means that we found "?page=" in the current url .. means we are in the same search
-                YellowPages.pages = pages_urls
+            searching_keyword = YellowPages.get_search_keyword()
+            if not searching_keyword:
+                self.sig.error_message.emit("Error", "Search Results Not Found!")
+                self.states.reset_start_button(self.view.yp_start, self.view.yp_stop, self.view.yp_openBrowser)
+                return False
+            record = session.query(func.max(YellowPagesResults.page)).filter_by(
+                search_keyword=searching_keyword).first()  # RETURNS TUPLE
+            if record[0] is not None:
+                target_page = int(record[0])
+                # MAKE SURE THAT WE ARE NOT ON THE FIRST PAGE TO AVOID INFINITE LOOP
+                if target_page > 1:
+                    YellowPages.move_to_page(target_page)
             # SHOWING REPORT PANEL
             self.view.listWidget.setCurrentRow(1)
+
             #### PROCESS LOOP ####
-            for index, page in enumerate(YellowPages.pages):
+            while True:
                 # STOP EVENT CHECK
                 if YellowPages.state == "stopped":
                     break
-                if session.query(YellowPages).filter_by(page=page).first() is not None:
-                    continue
-                # RANDOM DELAY
-                self.view.statusbar.showMessage(
-                    ">>>    (YELLOW PAGES) - Delaying Randomly (15-25 seconds) to avoid block... ")
-                sleep(random.randint(15, 25))
-
+                # CURRENT PAGE
+                page = YellowPages.get_current_page()
                 if YellowPages.state == "started":
                     self.view.statusbar.showMessage(">>>    (YELLOW PAGES) - Scraping the data... ")
-
-                YellowPages.window.get(page)
-                sleep(5)
+                # CURRENT PAGE SOURCE
                 page_source = YellowPages.window.page_source
-                data = YellowPages.scrape_data(page_source, self.view.statusbar)
-                for name, address, phone, email, website in data:
+                data = YellowPages.scrape_results(page_source)
+                for name, address, phone, website, url in data:
                     # STOP EVENT CHECK
-                    if Yelp.state == "stopped":
+                    if YellowPages.state == "stopped":
                         break
+                    # SKIP IF IT WAS SCRAPED BEFORE
+                    record = session.query(YellowPagesResults).filter_by(
+                        name=name,
+                        address=address,
+                        phone=phone,
+                        website=website,
+                        url=url
+                    ).first()
+                    if record is not None:
+                        continue
+                    # ADD TO THE DATABASE
+                    yp_obj = YellowPagesResults(
+                        name=name,
+                        address=address,
+                        phone=phone,
+                        url=url,
+                        website=website,
+                        page=page,
+                        search_keyword=searching_keyword
+                    )
+                    session.add(yp_obj)
+                    session.commit()
+                    self.view.statusbar.showMessage(f"   (YellowPages) - Scraping '{name}'...")
                     # PARSING THE ADDRESS TO STATE, CITY, STREET
                     if address != "---":
                         parsed_address = self.parse_address(address)
@@ -550,17 +585,8 @@ class Main:
                         parsed_address = {"street": "---", "state": "---", "city": "---"}
                     # CLEANING NUMBER FORMAT
                     phone = self.clean_phone_number(phone)
-                    # ADDING TO YELLOW PAGES MODEL
-                    yp_obj = YellowPagesModel(
-                        name=name,
-                        address=address,
-                        phone=phone,
-                        email=email,
-                        website=website,
-                        page=page
-                    )
-                    session.add(yp_obj)
-                    session.commit()
+                    # SCRAPING THE EMAIL
+                    email = YellowPages.scrape_email(url)
                     # AVOIDING DUBLICATES DATA
                     if email == "---":
                         report_record = session.query(Report).filter_by(phone=phone).first() if phone != "---" else None
@@ -572,7 +598,6 @@ class Main:
                     if report_record is not None:
                         continue
                     open_hours = "---"
-                    search_keyword = "---"  # todo(FUTURE) - the client may ask for this..
                     report_obj = Report(
                         name=name,
                         email=email,
@@ -583,31 +608,45 @@ class Main:
                         state=parsed_address["state"],
                         city=parsed_address["city"],
                         open_hours=open_hours,
-                        search_keyword=search_keyword,
+                        search_keyword=searching_keyword,
                         source="Yellow Pages"
                     )
                     session.add(report_obj)
                     session.commit()
                     # ADDING TO UI
                     data = (name, email, phone, website, "---", parsed_address["street"],
-                            parsed_address["state"], parsed_address["city"], open_hours, search_keyword, "Yelp")
+                            parsed_address["state"], parsed_address["city"], open_hours, searching_keyword, "Yellow Pages")
                     self.sig.add_to_tabelWidget.emit(data, self.view.tableWidget)
+                    self.view.statusbar.showMessage("")
+                if YellowPages.state == "stopped":
+                    break
+                # GOIING TO NEXT PAGE
+                self.sig.statusBar_msg.emit(">>> (YellowPages) - Delaying 15 to 25 seconds to avoid block")
+                sleep(random.randint(15, 25))
+                self.sig.statusBar_msg.emit("")
+                if YellowPages.click_next_page() is False:
+                    break
+        except WebDriverException:
+            YellowPages.state = "error"
+            self.sig.error_message.emit("Error", "Internet Connetion Lost!")
         # HANDELING UNKNOWN ERRORS
         except Exception as e:
             YellowPages.state = "error"
             self.sig.error_message.emit("Error",
                                         f"Something Wrong Happened\nError:\n{e}\ntraceback:\n{traceback.extract_tb(e.__traceback__)}")
-
         # COMPLETED ACTION
         if YellowPages.state != "stopped" and YellowPages.state != "error":
-            self.sig.ok_message.emit("Yellow Pages Completed",
-                                     "Yellow Pages Completed Scraping Process Successfully ^_^")
+            self.sig.ok_message.emit("YellowPages Completed",
+                                     "YellowPages Completed Scraping Process Successfully ^_^")
         else:
+            # RESETING STOP BUTTON
             self.view.yp_stop.setText("")
             self.view.yp_stop.setEnabled(True)
         self.states.reset_start_button(self.view.yp_start, self.view.yp_stop, self.view.yp_openBrowser)
         YellowPages.state = "idle"
-        self.view.statusbar.showMessage("")
+        self.view.statusbar.showMessage(f"")
+
+
 
 
 if __name__ == '__main__':

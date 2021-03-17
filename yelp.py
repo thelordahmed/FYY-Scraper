@@ -75,6 +75,9 @@ class Yelp:
 
     @classmethod
     def _extract_url(cls, href_content: str):
+        """
+        this method is used to extract the website url from the href text
+        """
         start = href_content.index("?url=")
         end = href_content.index("&")
         url_quote = href_content[start:end].replace("?url=", "")

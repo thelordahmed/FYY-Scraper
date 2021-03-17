@@ -51,14 +51,15 @@ class YelpResults(Base):
     page = Column(Integer)
 
 
-class YellowPagesModel(Base):
+class YellowPagesResults(Base):
     __tablename__ = "yellowpages"
     id = Column(Integer, primary_key=True)
     name = Column(String(200))
     address = Column(String(200))
     phone = Column(String(100))
-    email = Column(String(200))
     website = Column(String(200))
+    url = Column(String(300))
+    search_keyword = Column(String(200))
     page = Column(String(300))
 
 
