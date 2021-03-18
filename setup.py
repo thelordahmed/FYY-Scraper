@@ -8,7 +8,7 @@ import sys
 base = 'Win32GUI' if sys.platform=='win32' else None
 
 executables = [
-    Executable('main.py', base=base, targetName = 'FYY Scraper Beta')
+    Executable('main.py', base=base, targetName = 'FYY Scraper')
 ]
 
 setup(name='FYY Scraper',

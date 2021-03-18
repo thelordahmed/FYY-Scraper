@@ -1,4 +1,6 @@
 import csv
+import os
+import platform
 import random
 from time import sleep
 import usaddress
@@ -24,6 +26,7 @@ from sqlalchemy.sql import default_comparator
 
 class Signals(QtCore.QObject):
     ok_message = QtCore.Signal(str, str)
+    non_modal_ok_message = QtCore.Signal(str, str)
     error_message = QtCore.Signal(str, str)
     add_to_tabelWidget = QtCore.Signal(tuple, QTableWidget)
     statusBar_msg = QtCore.Signal(str)
@@ -161,7 +164,9 @@ class Main:
             path = self.view.saveDialog()
             with open(path, "w", encoding="utf-8", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow(["Name", "Email", "Phone", "Website", "Facbook Page", "Address", "State", "City", "Open Hours", "Search Keyword", "Source"])
+                writer.writerow(
+                    ["Name", "Email", "Phone", "Website", "Facbook Page", "Address", "State", "City", "Open Hours",
+                     "Search Keyword", "Source"])
                 for row in reports:
                     writer.writerow(row)
         except Exception as e:
@@ -188,6 +193,11 @@ class Main:
             session.query(YellowPagesResults).delete()
             session.query(FacebookPages).delete()
             session.commit()
+            if platform.system() == "Darwin":
+                os.system(f"rm {controller.fb_processed_json}")
+            else:
+                os.system(f"del {controller.fb_processed_json}")
+
             self.view.tableWidget.setRowCount(0)
 
     @staticmethod
@@ -328,9 +338,6 @@ class Main:
                 if Yelp.click_next_page() is False:
                     self.sig.ok_message.emit("Yelp Note", "Yelp Completed Successfully ^_^")
                     break
-        except WebDriverException:
-            Yelp.state = "error"
-            self.sig.error_message.emit("Error", "Internet Connetion Lost!")
         # HANDELING UNKNOWN ERRORS
         except Exception as e:
             Yelp.state = "error"
@@ -338,8 +345,8 @@ class Main:
                                         f"Something Wrong Happened\nError:\n{e}\ntraceback:\n{traceback.extract_tb(e.__traceback__)}")
         # COMPLETED ACTION
         if Yelp.state != "stopped" and Yelp.state != "error":
-            self.sig.ok_message.emit("Yelp Completed",
-                                     "Yelp Completed Scraping Process Successfully ^_^")
+            self.sig.non_modal_ok_message.emit("Yelp Completed",
+                                               "Yelp Completed Scraping Process Successfully ^_^")
         else:
             # RESETING STOP BUTTON
             self.view.yelp_stop.setText("")
@@ -379,7 +386,12 @@ class Main:
                 self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
                 return False
             # GETTING THE KEYWORD
-            search_keyword = Facebook.window.find_element_by_xpath(Facebook.search_input).get_attribute("value")
+            try:
+                search_keyword = Facebook.window.find_element_by_xpath(Facebook.search_input).get_attribute("value")
+            except:
+                self.sig.error_message.emit("Error", "search reults not found, please make your search first!")
+                self.states.reset_start_button(self.view.fb_start, self.view.fb_stop, self.view.fb_openBrowser)
+                return False
             # CHECKPOINT CONTINUE
             pages = None
             try:
@@ -411,7 +423,8 @@ class Main:
                 # LIMIT COUNTER CHECK
                 if counter >= 20:
                     counter = 0
-                    self.view.statusbar.showMessage(f"    (Facebook) -  Random Delay From 10 to 25 seconds to avoid block")
+                    self.view.statusbar.showMessage(
+                        f"    (Facebook) -  Random Delay From 10 to 25 seconds to avoid block")
                     sleep(random.randint(10, 25))
                     self.view.statusbar.showMessage(f"")
                 # CHECK IF PAGE WAS SCRAPED BEFORE
@@ -480,17 +493,14 @@ class Main:
                 data = (name, email, phone, website, url, parsed_address["street"],
                         parsed_address["state"], parsed_address["city"], open_hours, search_keyword, "Facebook")
                 self.sig.add_to_tabelWidget.emit(data, self.view.tableWidget)
-        except WebDriverException:
-            Facebook.state = "error"
-            self.sig.error_message.emit("Error", "Internet Connetion Lost!")
         except Exception as e:
             Facebook.state = "error"
             self.sig.error_message.emit("Error",
                                         f"Something Wrong Happened\nError:\n{e}\ntraceback:\n{traceback.extract_tb(e.__traceback__)}")
         # COMPLETED ACTION
         if Facebook.state != "stopped" and Facebook.state != "error":
-            self.sig.ok_message.emit("Facebook Completed",
-                                     "Facebook Completed Scraping Process Successfully ^_^")
+            self.sig.non_modal_ok_message.emit("Facebook Completed",
+                                               "Facebook Completed Scraping Process Successfully ^_^")
         else:
             self.view.fb_stop.setText("")
             self.view.fb_stop.setEnabled(True)
@@ -616,7 +626,8 @@ class Main:
                     session.commit()
                     # ADDING TO UI
                     data = (name, email, phone, website, "---", parsed_address["street"],
-                            parsed_address["state"], parsed_address["city"], open_hours, searching_keyword, "Yellow Pages")
+                            parsed_address["state"], parsed_address["city"], open_hours, searching_keyword,
+                            "Yellow Pages")
                     self.sig.add_to_tabelWidget.emit(data, self.view.tableWidget)
                     self.view.statusbar.showMessage("")
                 if YellowPages.state == "stopped":
@@ -627,9 +638,6 @@ class Main:
                 self.sig.statusBar_msg.emit("")
                 if YellowPages.click_next_page() is False:
                     break
-        except WebDriverException:
-            YellowPages.state = "error"
-            self.sig.error_message.emit("Error", "Internet Connetion Lost!")
         # HANDELING UNKNOWN ERRORS
         except Exception as e:
             YellowPages.state = "error"
@@ -637,8 +645,8 @@ class Main:
                                         f"Something Wrong Happened\nError:\n{e}\ntraceback:\n{traceback.extract_tb(e.__traceback__)}")
         # COMPLETED ACTION
         if YellowPages.state != "stopped" and YellowPages.state != "error":
-            self.sig.ok_message.emit("YellowPages Completed",
-                                     "YellowPages Completed Scraping Process Successfully ^_^")
+            self.sig.non_modal_ok_message.emit("YellowPages Completed",
+                                               "YellowPages Completed Scraping Process Successfully ^_^")
         else:
             # RESETING STOP BUTTON
             self.view.yp_stop.setText("")
@@ -646,8 +654,6 @@ class Main:
         self.states.reset_start_button(self.view.yp_start, self.view.yp_stop, self.view.yp_openBrowser)
         YellowPages.state = "idle"
         self.view.statusbar.showMessage(f"")
-
-
 
 
 if __name__ == '__main__':

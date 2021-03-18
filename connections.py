@@ -9,6 +9,7 @@ class Connections:
 
         # SIGNALS
         self.main.sig.ok_message.connect(self.view.ok_message)
+        self.main.sig.non_modal_ok_message.connect(self.view.non_modal_ok_message)
         self.main.sig.error_message.connect(self.view.error_message)
         self.main.sig.add_to_tabelWidget.connect(self.view.addToTableWidget)
         self.main.sig.statusBar_msg.connect(self.view.statusbar.showMessage)

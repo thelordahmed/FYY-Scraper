@@ -23,8 +23,9 @@ class View(QMainWindow, design):
         # HIDING TABWDIGET TOP BAR
         self.container_tabwid.tabBar().hide()
         # self.license_frame.hide()
-        self.adjustSize()
         self.commandLinkButton.setText(f"Copyright © 2021 {controller.copyright_text}")
+        self.adjustSize()
+
 
 
     @staticmethod
@@ -85,6 +86,19 @@ class View(QMainWindow, design):
 
     def ok_message(self, title, text):
         QMessageBox.information(self, title, text, QMessageBox.Ok)
+
+
+    def non_modal_ok_message(self, title, text):
+        """
+        to create a pop up dialog without blocking the excexution
+        """
+        msgBox = QMessageBox(parent=self)
+        msgBox.setIcon(QMessageBox.Information)
+        msgBox.setModal(False)
+        msgBox.setWindowTitle(title)
+        msgBox.setText(text)
+        msgBox.setStandardButtons(QMessageBox.Ok)
+        msgBox.show()
 
     def error_message(self, title, text):
         QMessageBox.critical(self, title, text, QMessageBox.Ok)
