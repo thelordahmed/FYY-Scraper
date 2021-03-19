@@ -280,6 +280,8 @@ class Main:
                         continue
                     # SCRAPING RESULT DETAILS
                     result_details = Yelp.scrape_result_details(url)
+                    if result_details is False:
+                        continue
                     email, phone, website, address, open_hours = result_details[0], result_details[1], result_details[
                         2], \
                                                                  result_details[3], result_details[4]

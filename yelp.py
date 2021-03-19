@@ -219,7 +219,11 @@ class Yelp:
             options.add_argument("--disable-gpu")
             options.add_argument("--window-size=1200,1100")
             cls.second_window = Chrome(ChromeDriverManager().install(), options=options)
-        cls.second_window.get(url)
+        try:    # FIXING A BUG: URL IS NOT RESOLVED
+            cls.second_window.get(url)
+        except Exception as e:
+            print(e)
+            return False
         # EXPLICTLY WAIT FOR PAGE TO LOAD
         WebDriverWait(cls.second_window, 60).until(
             ec.visibility_of_element_located((By.XPATH, '//a[contains(@class, "logo-link_")]')))
