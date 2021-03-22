@@ -1,6 +1,5 @@
 import random
 from time import sleep
-
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException, \
     InvalidArgumentException
 from selenium.webdriver.chrome.options import Options
@@ -32,14 +31,15 @@ class Facebook:
     # TO CHECK IF PAGE LOADED OR NOT
     page_about_link = '//div/div/div/a[contains(@href, "/about") and @role="link"]'
     # PAGE DETAILS INFO
+    detail_ajax_loader = '//*[@id="mount_0_0_PO"]/div/div[1]/div/div[3]/div/div/div[2]/div[1]/div[4]/div/div/div[1]//div[@aria-busy="true" and @role="progressbar" and @data-visualcompletion="loading-state"]'
     close_chat_btn = '//div[@data-prevent_chattab_focus]//div/span[2]'
     address = '//a[contains(@href, "maps") and @role="link"]/span/span'
-    website = '//div/div/div/div/div/div[2]/div/div/span/span/a[@role="link" and @target="_blank" and @rel="nofollow noopener" and contains(text(), "http") and not(contains(text(), "twitter")) and not(contains(text(), "youtube")) and not(contains(text(), "instagram"))]'  # .text
-    email = '//div/div/div/div/div/div[2]/div/div/span/span/a[@role="link" and @target="_blank" and contains(text(), "@")  and contains(@href, "mailto:")]'  #.text
+    website = '//div/div/div/div/div/div[2]/div/div/span/span/a[@role="link" and @target="_blank" and @rel="nofollow noopener" and contains(text(), "http") and not(contains(text(), "twitter")) and not(contains(text(), "youtube")) and not(contains(text(), "instagram"))] | //div[contains(@data-pagelet, "ProfileTilesFeed")]//span[not(contains(text(), "twitter")) and not(contains(text(), "youtube")) and not(contains(text(), "instagram")) and contains(text(), ".com") and not(contains(text(), "@")) or contains(text(), "http") ]'  # .text
+    email = '//div/div/div/div/div/div[2]/div/div/span/span/a[@role="link" and @target="_blank" and contains(text(), "@")  and contains(@href, "mailto:")] | //div[contains(@data-pagelet, "ProfileTilesFeed")]//div/span[contains(text(), "@")  and contains(text(), ".")]'  #.text
         # IF OPEN HOURS NOT FOUND LOOK FOR OPEN NOW
     open_hours = '//div[@class]/span[@class and @dir]/div[@class and @tabindex]/div[@class]/span[@class][1]'
         # THIS WILL RETURN MULTIPLE VALUES, GET THEM AND EXTRACT THE PHONE NUMBER WITH REGEX
-    phone_elems = '//div[not(@class)]/div[@class]/div[@class]/div[@class]/div[i]/../div[2]/div[@class]/div[@class]/span[@class and @dir="auto"]/span[not(a)]'
+    phone = '//div[not(@class)]/div[@class]/div[@class]/div[@class]/div[i]/../div[2]/div[@class]/div[@class]/span[@class and @dir="auto"]/span[not(a) and contains(text(), "0") or contains(text(), "9") or contains(text(), "1")] | //div[contains(@data-pagelet, "ProfileTilesFeed")]//div[@class]/div[@class]/div[@class]/span[@class and @dir="auto" and contains(text(), "0") or contains(text(), "9") or contains(text(), "1")]'
 
 
     @classmethod
@@ -90,7 +90,6 @@ class Facebook:
             # MAKE SURE THAT THE AJAX LOADER DOESN'T EXISTS
             WebDriverWait(cls.window, 10).until(ec.invisibility_of_element_located((By.XPATH, cls.ajax_loader)))
             elements = cls.window.find_elements_by_xpath(cls.search_result_name)
-            actions = ActionChains(cls.window)
             cls.window.switch_to.window(cls.window.current_window_handle)
             for elem in elements:
                 # SKIPPING COMPLETED PAGES
@@ -148,11 +147,13 @@ class Facebook:
     @classmethod
     def scrape_details(cls, url):
         cls.window.get(url)
-        # CHECK IF PAGE LOADED
         try:
-            WebDriverWait(cls.window, 20).until(ec.visibility_of_element_located((By.XPATH, cls.page_about_link)))
+            WebDriverWait(cls.window, 10).until(ec.invisibility_of_element_located((By.XPATH, cls.detail_ajax_loader)))
         except TimeoutException:
-            return False
+            print("NOT FOUND")
+            pass
+        # CHECK IF PAGE LOADED
+        sleep(random.randint(3, 8))
         # ADDRESS SCRAPING
         try:
             address = cls.window.find_element_by_xpath(cls.address).text
@@ -174,13 +175,19 @@ class Facebook:
         except NoSuchElementException:
             open_hours = "---"
         # PHONE SCRAPING
-        elements = cls.window.find_elements_by_xpath(cls.phone_elems)
-        phone = "---"
-        for elem in elements:
-            match = re.search(r"(\+\d{1,3}\s?)?((\(\d{3}\)\s?)|(\d{3})(\s|-?))(\d{3}(\s|-?))(\d{4})(\s?(([E|e]xt[:|.|]?)|x|X)(\s?\d+))?",
-                              elem.text)
-            if match is not None:
-                phone = match.group()
-                break
+        try:
+            phone = cls.window.find_element_by_xpath(cls.phone).text
+        except NoSuchElementException:
+            phone = "---"
+        # # PHONE SCRAPING
+        # elements = cls.window.find_elements_by_xpath(cls.phone_elems)
+        # phone = "---"
+        # for elem in elements:
+        #     match = re.search(r"(\+\d{1,3}\s?)?((\(\d{3}\)\s?)|(\d{3})(\s|-?))(\d{3}(\s|-?))(\d{4})(\s?(([E|e]xt[:|.|]?)|x|X)(\s?\d+))?",
+        #                       elem.text)
+        #     if match is not None:
+        #         phone = match.group()
+        #         break
+        if website == "---" and email == "---" and phone == "---":
+            return False
         return [address, website, email, phone, open_hours]
-

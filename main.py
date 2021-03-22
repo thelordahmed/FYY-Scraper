@@ -461,11 +461,8 @@ class Main:
                     parsed_address = {"street": "---", "state": "---", "city": "---"}
 
                 # CLEANING NUMBER FORMAT
-                phone = self.clean_phone_number(phone)
-                # ADDING TO FACEBOOK MODEL
-                fb_model = FacebookPages(name=name, url=url)
-                session.add(fb_model)
-                session.commit()
+                if phone != "---":
+                    phone = self.clean_phone_number(phone)
                 # AVOIDING DUBLICATES DATA
                 if email == "---":
                     report_record = session.query(Report).filter_by(phone=phone).first() if phone != "---" else None

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'untitled PC.ui'
+## Form generated from reading UI file 'untitled.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.15.2
 ##
@@ -20,10 +20,7 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.setWindowModality(Qt.WindowModal)
-        MainWindow.resize(871, 548)
-        font = QFont()
-        font.setPointSize(8)
-        MainWindow.setFont(font)
+        MainWindow.resize(693, 688)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
@@ -67,11 +64,6 @@ class Ui_MainWindow(object):
         sizePolicy1.setHeightForWidth(self.listWidget.sizePolicy().hasHeightForWidth())
         self.listWidget.setSizePolicy(sizePolicy1)
         self.listWidget.setMinimumSize(QSize(160, 0))
-        font1 = QFont()
-        font1.setPointSize(9)
-        font1.setBold(True)
-        font1.setWeight(75)
-        self.listWidget.setFont(font1)
         self.listWidget.setStyleSheet(u"QListView { /* The tab widget frame */\n"
 "    background:transparent;\n"
 "	font-weight:bold;\n"
@@ -124,11 +116,6 @@ class Ui_MainWindow(object):
 
         self.container_tabwid = QTabWidget(self.mainwindow_frame)
         self.container_tabwid.setObjectName(u"container_tabwid")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.container_tabwid.sizePolicy().hasHeightForWidth())
-        self.container_tabwid.setSizePolicy(sizePolicy2)
         self.container_tabwid.setStyleSheet(u"")
         self.container_tabwid.setTabPosition(QTabWidget.North)
         self.container_tabwid.setElideMode(Qt.ElideRight)
@@ -137,23 +124,21 @@ class Ui_MainWindow(object):
         self.container_tabwid.setTabBarAutoHide(False)
         self.main = QWidget()
         self.main.setObjectName(u"main")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.main.sizePolicy().hasHeightForWidth())
-        self.main.setSizePolicy(sizePolicy3)
         self.verticalLayout_9 = QVBoxLayout(self.main)
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
         self.verticalLayout_9.setContentsMargins(-1, -1, -1, 0)
         self.groupBox = QGroupBox(self.main)
         self.groupBox.setObjectName(u"groupBox")
-        sizePolicy3.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
-        self.groupBox.setSizePolicy(sizePolicy3)
-        font2 = QFont()
-        font2.setPointSize(10)
-        font2.setBold(True)
-        font2.setWeight(75)
-        self.groupBox.setFont(font2)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
+        self.groupBox.setSizePolicy(sizePolicy2)
+        font = QFont()
+        font.setPointSize(16)
+        font.setBold(True)
+        font.setWeight(75)
+        self.groupBox.setFont(font)
         self.groupBox.setStyleSheet(u"")
         self.horizontalLayout = QHBoxLayout(self.groupBox)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -177,7 +162,6 @@ class Ui_MainWindow(object):
         self.yp_start.setObjectName(u"yp_start")
         sizePolicy.setHeightForWidth(self.yp_start.sizePolicy().hasHeightForWidth())
         self.yp_start.setSizePolicy(sizePolicy)
-        self.yp_start.setMinimumSize(QSize(70, 0))
         icon3 = QIcon()
         icon3.addFile(u":/black-icons/Data/imgs/black icons/icons8-play-500.png", QSize(), QIcon.Normal, QIcon.Off)
         self.yp_start.setIcon(icon3)
@@ -189,7 +173,6 @@ class Ui_MainWindow(object):
         self.yp_stop.setObjectName(u"yp_stop")
         sizePolicy.setHeightForWidth(self.yp_stop.sizePolicy().hasHeightForWidth())
         self.yp_stop.setSizePolicy(sizePolicy)
-        self.yp_stop.setMinimumSize(QSize(70, 0))
         icon4 = QIcon()
         icon4.addFile(u":/black-icons/Data/imgs/black icons/icons8-pause-500.png", QSize(), QIcon.Normal, QIcon.Off)
         self.yp_stop.setIcon(icon4)
@@ -202,9 +185,7 @@ class Ui_MainWindow(object):
 
         self.groupBox_2 = QGroupBox(self.main)
         self.groupBox_2.setObjectName(u"groupBox_2")
-        sizePolicy3.setHeightForWidth(self.groupBox_2.sizePolicy().hasHeightForWidth())
-        self.groupBox_2.setSizePolicy(sizePolicy3)
-        self.groupBox_2.setFont(font2)
+        self.groupBox_2.setFont(font)
         self.groupBox_2.setStyleSheet(u"")
         self.horizontalLayout_2 = QHBoxLayout(self.groupBox_2)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
@@ -218,11 +199,11 @@ class Ui_MainWindow(object):
 
         self.line_2 = QFrame(self.groupBox_2)
         self.line_2.setObjectName(u"line_2")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.line_2.sizePolicy().hasHeightForWidth())
-        self.line_2.setSizePolicy(sizePolicy4)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.line_2.sizePolicy().hasHeightForWidth())
+        self.line_2.setSizePolicy(sizePolicy3)
         self.line_2.setFrameShape(QFrame.VLine)
         self.line_2.setFrameShadow(QFrame.Sunken)
 
@@ -232,7 +213,6 @@ class Ui_MainWindow(object):
         self.yelp_start.setObjectName(u"yelp_start")
         sizePolicy.setHeightForWidth(self.yelp_start.sizePolicy().hasHeightForWidth())
         self.yelp_start.setSizePolicy(sizePolicy)
-        self.yelp_start.setMinimumSize(QSize(70, 0))
         self.yelp_start.setIcon(icon3)
         self.yelp_start.setIconSize(QSize(30, 30))
 
@@ -242,7 +222,6 @@ class Ui_MainWindow(object):
         self.yelp_stop.setObjectName(u"yelp_stop")
         sizePolicy.setHeightForWidth(self.yelp_stop.sizePolicy().hasHeightForWidth())
         self.yelp_stop.setSizePolicy(sizePolicy)
-        self.yelp_stop.setMinimumSize(QSize(70, 0))
         self.yelp_stop.setIcon(icon4)
         self.yelp_stop.setIconSize(QSize(30, 30))
 
@@ -253,9 +232,7 @@ class Ui_MainWindow(object):
 
         self.groupBox_3 = QGroupBox(self.main)
         self.groupBox_3.setObjectName(u"groupBox_3")
-        sizePolicy3.setHeightForWidth(self.groupBox_3.sizePolicy().hasHeightForWidth())
-        self.groupBox_3.setSizePolicy(sizePolicy3)
-        self.groupBox_3.setFont(font2)
+        self.groupBox_3.setFont(font)
         self.horizontalLayout_3 = QHBoxLayout(self.groupBox_3)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.fb_openBrowser = QPushButton(self.groupBox_3)
@@ -277,7 +254,6 @@ class Ui_MainWindow(object):
         self.fb_start.setObjectName(u"fb_start")
         sizePolicy.setHeightForWidth(self.fb_start.sizePolicy().hasHeightForWidth())
         self.fb_start.setSizePolicy(sizePolicy)
-        self.fb_start.setMinimumSize(QSize(70, 0))
         self.fb_start.setIcon(icon3)
         self.fb_start.setIconSize(QSize(30, 30))
 
@@ -287,7 +263,6 @@ class Ui_MainWindow(object):
         self.fb_stop.setObjectName(u"fb_stop")
         sizePolicy.setHeightForWidth(self.fb_stop.sizePolicy().hasHeightForWidth())
         self.fb_stop.setSizePolicy(sizePolicy)
-        self.fb_stop.setMinimumSize(QSize(70, 0))
         self.fb_stop.setIcon(icon4)
         self.fb_stop.setIconSize(QSize(30, 30))
 
@@ -298,11 +273,11 @@ class Ui_MainWindow(object):
 
         self.horizontalFrame = QFrame(self.main)
         self.horizontalFrame.setObjectName(u"horizontalFrame")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy5.setHorizontalStretch(0)
-        sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.horizontalFrame.sizePolicy().hasHeightForWidth())
-        self.horizontalFrame.setSizePolicy(sizePolicy5)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.horizontalFrame.sizePolicy().hasHeightForWidth())
+        self.horizontalFrame.setSizePolicy(sizePolicy4)
         self.horizontalLayout_10 = QHBoxLayout(self.horizontalFrame)
         self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
         self.horizontalLayout_10.setContentsMargins(-1, 0, -1, -1)
@@ -343,11 +318,11 @@ class Ui_MainWindow(object):
         self.tableWidget.setHorizontalHeaderItem(10, __qtablewidgetitem10)
         self.tableWidget.setObjectName(u"tableWidget")
         self.tableWidget.setMinimumSize(QSize(0, 280))
-        font3 = QFont()
-        font3.setPointSize(10)
-        font3.setBold(False)
-        font3.setWeight(50)
-        self.tableWidget.setFont(font3)
+        font1 = QFont()
+        font1.setPointSize(10)
+        font1.setBold(False)
+        font1.setWeight(50)
+        self.tableWidget.setFont(font1)
         self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tableWidget.horizontalHeader().setCascadingSectionResizes(False)
         self.tableWidget.horizontalHeader().setStretchLastSection(False)
@@ -360,32 +335,23 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.setContentsMargins(-1, -1, -1, 0)
         self.clear_btn = QPushButton(self.report)
         self.clear_btn.setObjectName(u"clear_btn")
-        sizePolicy6 = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
-        sizePolicy6.setHorizontalStretch(0)
-        sizePolicy6.setVerticalStretch(0)
-        sizePolicy6.setHeightForWidth(self.clear_btn.sizePolicy().hasHeightForWidth())
-        self.clear_btn.setSizePolicy(sizePolicy6)
+        sizePolicy5 = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+        sizePolicy5.setHorizontalStretch(0)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.clear_btn.sizePolicy().hasHeightForWidth())
+        self.clear_btn.setSizePolicy(sizePolicy5)
         icon5 = QIcon()
         icon5.addFile(u":/black-icons/Data/imgs/black icons/icons8-trash-500.png", QSize(), QIcon.Normal, QIcon.Off)
         self.clear_btn.setIcon(icon5)
 
         self.verticalLayout_4.addWidget(self.clear_btn, 0, Qt.AlignRight)
 
-        self.widget = QWidget(self.report)
-        self.widget.setObjectName(u"widget")
-        sizePolicy7 = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
-        sizePolicy7.setHorizontalStretch(0)
-        sizePolicy7.setVerticalStretch(0)
-        sizePolicy7.setHeightForWidth(self.widget.sizePolicy().hasHeightForWidth())
-        self.widget.setSizePolicy(sizePolicy7)
-        self.horizontalLayout_4 = QHBoxLayout(self.widget)
+        self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setSpacing(0)
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.horizontalLayout_4.setContentsMargins(-1, -1, -1, 1)
-        self.groupBox_5 = QGroupBox(self.widget)
+        self.horizontalLayout_4.setContentsMargins(-1, -1, -1, 0)
+        self.groupBox_5 = QGroupBox(self.report)
         self.groupBox_5.setObjectName(u"groupBox_5")
-        sizePolicy7.setHeightForWidth(self.groupBox_5.sizePolicy().hasHeightForWidth())
-        self.groupBox_5.setSizePolicy(sizePolicy7)
         self.horizontalLayout_5 = QHBoxLayout(self.groupBox_5)
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.sortBy_cb = QComboBox(self.groupBox_5)
@@ -402,10 +368,8 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_4.addWidget(self.groupBox_5)
 
-        self.groupBox_4 = QGroupBox(self.widget)
+        self.groupBox_4 = QGroupBox(self.report)
         self.groupBox_4.setObjectName(u"groupBox_4")
-        sizePolicy7.setHeightForWidth(self.groupBox_4.sizePolicy().hasHeightForWidth())
-        self.groupBox_4.setSizePolicy(sizePolicy7)
         self.verticalLayout_3 = QVBoxLayout(self.groupBox_4)
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.source_cb = QComboBox(self.groupBox_4)
@@ -421,12 +385,12 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.groupBox_4)
 
 
-        self.verticalLayout_4.addWidget(self.widget, 0, Qt.AlignHCenter)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_4)
 
         self.export_btn = QPushButton(self.report)
         self.export_btn.setObjectName(u"export_btn")
-        sizePolicy6.setHeightForWidth(self.export_btn.sizePolicy().hasHeightForWidth())
-        self.export_btn.setSizePolicy(sizePolicy6)
+        sizePolicy5.setHeightForWidth(self.export_btn.sizePolicy().hasHeightForWidth())
+        self.export_btn.setSizePolicy(sizePolicy5)
         self.export_btn.setStyleSheet(u"padding:10px 30px")
 
         self.verticalLayout_4.addWidget(self.export_btn, 0, Qt.AlignHCenter)
@@ -436,8 +400,8 @@ class Ui_MainWindow(object):
 
         self.horizontalFrame_2 = QFrame(self.report)
         self.horizontalFrame_2.setObjectName(u"horizontalFrame_2")
-        sizePolicy5.setHeightForWidth(self.horizontalFrame_2.sizePolicy().hasHeightForWidth())
-        self.horizontalFrame_2.setSizePolicy(sizePolicy5)
+        sizePolicy4.setHeightForWidth(self.horizontalFrame_2.sizePolicy().hasHeightForWidth())
+        self.horizontalFrame_2.setSizePolicy(sizePolicy4)
         self.horizontalLayout_15 = QHBoxLayout(self.horizontalFrame_2)
         self.horizontalLayout_15.setObjectName(u"horizontalLayout_15")
         self.horizontalLayout_15.setContentsMargins(-1, 0, -1, 10)
@@ -451,26 +415,25 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.label = QLabel(self.about)
         self.label.setObjectName(u"label")
-        font4 = QFont()
-        font4.setPointSize(14)
-        font4.setBold(True)
-        font4.setWeight(75)
-        self.label.setFont(font4)
+        font2 = QFont()
+        font2.setPointSize(17)
+        font2.setBold(True)
+        font2.setWeight(75)
+        self.label.setFont(font2)
 
         self.verticalLayout_2.addWidget(self.label, 0, Qt.AlignHCenter)
 
         self.label_2 = QLabel(self.about)
         self.label_2.setObjectName(u"label_2")
-        self.label_2.setFont(font4)
+        self.label_2.setFont(font2)
 
         self.verticalLayout_2.addWidget(self.label_2, 0, Qt.AlignHCenter)
 
         self.textBrowser_5 = QTextBrowser(self.about)
         self.textBrowser_5.setObjectName(u"textBrowser_5")
-        font5 = QFont()
-        font5.setFamily(u"arial")
-        font5.setPointSize(8)
-        self.textBrowser_5.setFont(font5)
+        font3 = QFont()
+        font3.setFamily(u"arial")
+        self.textBrowser_5.setFont(font3)
         self.textBrowser_5.setStyleSheet(u"background:transparent;\n"
 "border:transparent\n"
 "\n"
@@ -495,18 +458,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout_13.setContentsMargins(-1, 1, -1, -1)
         self.commandLinkButton = QCommandLinkButton(self.frame)
         self.commandLinkButton.setObjectName(u"commandLinkButton")
-        sizePolicy8 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
-        sizePolicy8.setHorizontalStretch(0)
-        sizePolicy8.setVerticalStretch(0)
-        sizePolicy8.setHeightForWidth(self.commandLinkButton.sizePolicy().hasHeightForWidth())
-        self.commandLinkButton.setSizePolicy(sizePolicy8)
+        sizePolicy6 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        sizePolicy6.setHorizontalStretch(0)
+        sizePolicy6.setVerticalStretch(0)
+        sizePolicy6.setHeightForWidth(self.commandLinkButton.sizePolicy().hasHeightForWidth())
+        self.commandLinkButton.setSizePolicy(sizePolicy6)
         self.commandLinkButton.setMaximumSize(QSize(16777215, 25))
-        font6 = QFont()
-        font6.setFamily(u"Segoe UI")
-        font6.setPointSize(8)
-        font6.setBold(False)
-        font6.setWeight(50)
-        self.commandLinkButton.setFont(font6)
+        self.commandLinkButton.setFont(font3)
         self.commandLinkButton.setCursor(QCursor(Qt.PointingHandCursor))
         self.commandLinkButton.setStyleSheet(u"background: transparent;\n"
 "border:0")
@@ -533,7 +491,7 @@ class Ui_MainWindow(object):
         self.listWidget.currentRowChanged.connect(self.container_tabwid.setCurrentIndex)
 
         self.listWidget.setCurrentRow(0)
-        self.container_tabwid.setCurrentIndex(0)
+        self.container_tabwid.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -610,20 +568,20 @@ class Ui_MainWindow(object):
         self.textBrowser_5.setHtml(QCoreApplication.translate("MainWindow", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:'arial'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"</style></head><body style=\" font-family:'arial'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
 "<p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8.25pt;\"><br /></p>\n"
-"<p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Helvetica'; font-size:10pt; font-weight:600;\"><br /></p>\n"
-"<p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Helvetica'; font-size:10pt; font-weight:600;\"><br /></p>\n"
-"<p align=\"center\" style"
-                        "=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Helvetica'; font-size:12pt; font-weight:600;\">- Contact Me -</span></p>\n"
-"<p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Helvetica'; font-size:10pt; font-weight:600;\"><br /></p>\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Helvetica'; font-size:10pt; font-weight:600; color:#107d41;\">Whatsapp</span><span style=\" font-family:'Helvetica'; font-size:10pt; font-weight:600;\"> : </span><a href=\"https://web.whatsapp.com/send?phone=201120641378\"><span style=\" font-family:'Helvetica'; font-size:10pt; text-decoration: underline; color:#0000ff;\">+201120641378</span></a></p>\n"
-"<p align=\"center\" style=\"-qt-paragraph-type:e"
-                        "mpty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Helvetica'; font-size:10pt; font-weight:600;\"><br /></p>\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Helvetica'; font-size:10pt; font-weight:600; color:#445bb8;\">Facebook</span><span style=\" font-family:'Helvetica'; font-size:10pt; font-weight:600;\"> : </span><a href=\"https://www.facebook.com/lord.ahmed110\"><span style=\" font-family:'Helvetica'; font-size:10pt; text-decoration: underline; color:#0000ff;\">fb.com/lord.ahmed110</span></a></p>\n"
-"<p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Helvetica'; font-size:10pt; font-weight:600;\"><br /></p>\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; "
-                        "margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Helvetica'; font-size:10pt; font-weight:600; color:#db9409;\">Fiverr</span><span style=\" font-family:'Helvetica'; font-size:10pt; font-weight:600;\"> : </span><a href=\"https://www.fiverr.com/lordahmed\"><span style=\" font-family:'Helvetica'; font-size:10pt; text-decoration: underline; color:#0000ff;\">Fiverr.com/lordahmed</span></a></p></body></html>", None))
+"<p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Helvetica'; font-size:18pt; font-weight:600;\"><br /></p>\n"
+"<p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Helvetica'; font-size:18pt; font-weight:600;\"><br /></p>\n"
+"<p align=\"center\" styl"
+                        "e=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Helvetica'; font-size:18pt; font-weight:600;\">- Contact Me -</span></p>\n"
+"<p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Helvetica'; font-size:16pt; font-weight:600;\"><br /></p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Helvetica'; font-size:12pt; font-weight:600; color:#107d41;\">Whatsapp</span><span style=\" font-family:'Helvetica'; font-size:12pt; font-weight:600;\"> : </span><a href=\"https://web.whatsapp.com/send?phone=201120641378\"><span style=\" font-family:'Helvetica'; font-size:12pt; text-decoration: underline; color:#0000ff;\">+201120641378</span></a></p>\n"
+"<p align=\"center\" style=\"-qt-paragraph-type:"
+                        "empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Helvetica'; font-size:12pt; font-weight:600;\"><br /></p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Helvetica'; font-size:12pt; font-weight:600; color:#445bb8;\">Facebook</span><span style=\" font-family:'Helvetica'; font-size:12pt; font-weight:600;\"> : </span><a href=\"https://www.facebook.com/lord.ahmed110\"><span style=\" font-family:'Helvetica'; font-size:12pt; text-decoration: underline; color:#0000ff;\">fb.com/lord.ahmed110</span></a></p>\n"
+"<p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Helvetica'; font-size:12pt; font-weight:600;\"><br /></p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px;"
+                        " margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Helvetica'; font-size:12pt; font-weight:600; color:#db9409;\">Fiverr</span><span style=\" font-family:'Helvetica'; font-size:12pt; font-weight:600;\"> : </span><a href=\"https://www.fiverr.com/lordahmed\"><span style=\" font-family:'Helvetica'; font-size:12pt; text-decoration: underline; color:#0000ff;\">Fiverr.com/lordahmed</span></a></p></body></html>", None))
         self.container_tabwid.setTabText(self.container_tabwid.indexOf(self.about), QCoreApplication.translate("MainWindow", u"About", None))
         self.commandLinkButton.setText(QCoreApplication.translate("MainWindow", u"\u00a9 Copyright 2021 LorDAhmeD", None))
     # retranslateUi
