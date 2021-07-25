@@ -5,7 +5,7 @@ import os
 if system() == "Darwin":
     data_folder = f"{os.path.expanduser('~')}/Library/FYYScraper"
 else:
-    data_folder = "Data"
+    data_folder = r"C://ProgramData/FYYScraper/Data"
 browser_folder = os.path.join(data_folder, "browserData")
 fb_processed_json = os.path.join(data_folder, "fb_processed_pages.json")
 
