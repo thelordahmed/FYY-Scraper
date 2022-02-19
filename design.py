@@ -606,7 +606,7 @@ class Ui_MainWindow(object):
         self.export_btn.setText(QCoreApplication.translate("MainWindow", u"Export", None))
         self.container_tabwid.setTabText(self.container_tabwid.indexOf(self.report), QCoreApplication.translate("MainWindow", u"Report", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Thanks for using the software", None))
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"If you need any help, feel free to contact me at any time", None))
+        self.label_2.setText(QCoreApplication.translate("MainWindow", u"If you need any help, feel free to contact me anytime", None))
         self.textBrowser_5.setHtml(QCoreApplication.translate("MainWindow", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"

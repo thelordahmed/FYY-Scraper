@@ -194,7 +194,7 @@ QListView::item:!selected {
           <enum>QTabWidget::North</enum>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>2</number>
          </property>
          <property name="elideMode">
           <enum>Qt::ElideRight</enum>
@@ -799,7 +799,7 @@ QListView::item:!selected {
               </font>
              </property>
              <property name="text">
-              <string>If you need any help, feel free to contact me at any time</string>
+              <string>If you need any help, feel free to contact me anytime</string>
              </property>
             </widget>
            </item>
