@@ -25,7 +25,7 @@ class Yelp:
     detailed_loading_div = '//div[contains(@class, "mainColumnSection-spacing")]'
         # RESULTS
     results = '//li/div[contains(@class,"container__")]'
-    result_name = 'div//div[contains(@class,"businessName_")]//h4/span/a'
+    result_name = 'div//div[contains(@class,"businessName_")]//h3/span/a'
     result_review = 'div//span[contains(@class, "reviewCount_")]'
     result_category = 'div//div[contains(@class, "priceCategory_")]/div//span/span/span/a'
     result_verfied_license = 'div//div[contains(@class, "verifiedLicenseTextBadgeContainer_")]'    # not found for all results

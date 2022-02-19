@@ -25,7 +25,7 @@ class Facebook:
     ajax_loader = '//div[@aria-busy and @role="progressbar" and @data-visualcompletion="loading-state"]'
     pages_category_btn = '//div[@data-visualcompletion="ignore-dynamic"]/a[contains(@href, "search/pages")]'
     pages_category_btn_active = '//div[@data-visualcompletion="ignore-dynamic"]/a[contains(@href, "search/pages") and @aria-current="page"]'
-    end_of_results = '//div[not(@class)]/div[@class]/div[@class]/div[@class]/span[@class][text()]'
+    end_of_results = '//div[@role="feed"]//div[last()][@class]/div[@class]/div[@class]/span[@class][text()]'
     # search_result_name = '//div[@role="article"]//a[@role="link" and @tabindex and @class and @aria-label]'
     search_result_name = '//div[@role="article"]//a[@role="link"]'
     # TO CHECK IF PAGE LOADED OR NOT

@@ -7,6 +7,7 @@ import usaddress
 from PySide2 import QtCore
 from PySide2.QtWidgets import QApplication, QTableWidget
 import threading
+
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from sqlalchemy import func
 from view import View
@@ -19,9 +20,9 @@ from yellowpages import YellowPages
 import traceback
 import controller
 import json
-# cx-freeeze imports
-import fractions
-from sqlalchemy.sql import default_comparator
+# hidden imports (for EXE compiling)
+import pycrfsuite._dumpparser
+from pycrfsuite import _logparser
 
 
 class Signals(QtCore.QObject):

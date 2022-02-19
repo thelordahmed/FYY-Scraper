@@ -2,6 +2,7 @@ from yelp import Yelp
 from yellowpages import YellowPages
 from facebook import Facebook
 
+
 class Connections:
     def __init__(self, view, main):
         self.view = view
