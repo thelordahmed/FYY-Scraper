@@ -1,3 +1,4 @@
+import os
 import random
 from threading import Thread
 from time import sleep
@@ -97,7 +98,8 @@ class YellowPages:
         if req.ok:
             try:
                 soup = BeautifulSoup(req.text, "lxml")
-                info_div = soup.select_one("div.business-card-footer")
+                # BUG FIX .. (DIDN'T TEST IT)
+                info_div = soup.select_one("dl")
                 email = info_div.find("a", class_="email-business")["href"].replace("mailto:", "")
                 # sleep(randint(3, 7))   # added to main code
             except AttributeError and TypeError:

@@ -35,6 +35,8 @@ class Signals(QtCore.QObject):
 
 class Main:
     def __init__(self):
+        # FIXING BUG: WEBDRIVER-MANAGER SSL ERROR WHEN USING VPN
+        os.environ['WDM_SSL_VERIFY'] = '0'
         self.view = View("API URL")
         self.sig = Signals()
         self.states = States(self.view, self)
